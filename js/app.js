@@ -160,6 +160,47 @@ function calculateStreak(child) {
   return streak;
 }
 // =====================
+// RECENT GLOWS
+// =====================
+function renderRecentGlows(child) {
+  const container = document.getElementById('recent-glows-list');
+  if (!container) return;
+
+  if (!child.weeklyLogs || child.weeklyLogs.length === 0) {
+    container.innerHTML = `<p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:12px">No glows yet. Log your first week to capture a highlight.</p>`;
+    return;
+  }
+
+  // Get logs that have a glow entry, sorted most recent first
+  const glowLogs = [...child.weeklyLogs]
+    .filter(log => log.glow && log.glow.trim() !== '')
+    .sort((a, b) => b.weekNumber - a.weekNumber)
+    .slice(0, 3);
+
+  if (glowLogs.length === 0) {
+    container.innerHTML = `<p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:12px">No glows recorded yet. Add a glow when you log your next week.</p>`;
+    return;
+  }
+
+  container.innerHTML = glowLogs.map(log => {
+    const isAdventure = log.logType === 'adventure';
+    const dotColor = isAdventure ? 'var(--color-pink)' : 'var(--color-accent)';
+    const weekLabel = 'Week ' + log.weekNumber + ' · ' + (isAdventure ? 'Adventure week' : 'School week');
+    const date = new Date(log.startDate);
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    return `
+      <div class="glow-entry">
+        <div class="glow-dot" style="background:${dotColor}"></div>
+        <div class="glow-entry-content">
+          <div class="glow-entry-text">${log.glow}</div>
+          <div class="glow-entry-meta">${weekLabel} · ${dateStr}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+// =====================
 // DASHBOARD
 // =====================
 function renderDashboard() {
@@ -184,6 +225,7 @@ function renderDashboard() {
 
   renderChildSwitcher(family);
   renderSubjectList(child);
+  renderRecentGlows(child);
 }
 
 function getCurrentWeekDates() {
