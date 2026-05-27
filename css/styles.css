@@ -2,27 +2,20 @@
    CSS CUSTOM PROPERTIES
    ===================== */
 :root {
-  /* Brand colors */
   --color-primary: #534AB7;
   --color-primary-light: #EEEDFE;
   --color-primary-dark: #3C3489;
   --color-accent: #7F77DD;
   --color-pink: #db2777;
-
-  /* Neutrals */
+  --color-dark: #1a0a2e;
   --color-bg: #ffffff;
   --color-bg-secondary: #f9fafb;
   --color-border: #e5e7eb;
   --color-text: #1f1335;
   --color-text-secondary: #6b7280;
-
-  /* Deep purple for hero elements */
-  --color-dark: #1a0a2e;
-
-  /* Typography */
+  --color-success-bg: #E1F5EE;
+  --color-success-text: #085041;
   --font-main: 'Nunito', sans-serif;
-
-  /* Spacing */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -45,5 +38,445 @@ body {
   line-height: 1.5;
   max-width: 480px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 16px 32px;
+}
+
+/* =====================
+   SCREENS
+   ===================== */
+.screen {
+  display: none;
+  padding-top: 32px;
+}
+
+.screen.active {
+  display: block;
+}
+
+/* =====================
+   SCREEN HEADER
+   ===================== */
+.screen-header {
+  margin-bottom: 24px;
+}
+
+.screen-header h1 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.screen-header p {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+/* =====================
+   FORM ELEMENTS
+   ===================== */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-family: var(--font-main);
+  color: var(--color-text);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--color-primary);
+}
+
+.form-group input::placeholder {
+  color: #b0aec0;
+}
+
+/* =====================
+   HINTS
+   ===================== */
+.hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.hint.private {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.hint.public {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+/* =====================
+   GRADE GRID
+   ===================== */
+.grade-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.grade-chip {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  font-size: 13px;
+  font-family: var(--font-main);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.grade-chip.selected {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+/* =====================
+   AVATAR GRID
+   ===================== */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.avatar-opt {
+  aspect-ratio: 1;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.avatar-opt.selected {
+  border: 2px solid var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+/* =====================
+   BUTTONS
+   ===================== */
+.btn-primary {
+  width: 100%;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-main);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-ghost {
+  width: 100%;
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid #AFA9EC;
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-main);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s;
+}
+
+.btn-ghost:hover {
+  background: var(--color-primary-light);
+}
+
+/* =====================
+   TOP BAR
+   ===================== */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-top: 16px;
+}
+
+.school-nickname {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 18px;
+}
+
+/* =====================
+   CHILD SWITCHER
+   ===================== */
+.child-switcher {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
+}
+
+.child-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 5px 12px 5px 6px;
+  font-size: 13px;
+  font-family: var(--font-main);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.child-chip.active {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+.child-chip-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+/* =====================
+   CHILD HERO
+   ===================== */
+.child-hero {
+  background: var(--color-dark);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.child-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.child-avatar-lg {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.child-name-lg {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+}
+
+.child-grade-lg {
+  font-size: 12px;
+  color: #c4b5fd;
+  margin-top: 2px;
+}
+
+.streak-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.streak-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: white;
+}
+
+.streak-num span {
+  font-size: 13px;
+  font-weight: 400;
+  color: #c4b5fd;
+  margin-left: 4px;
+}
+
+/* =====================
+   LOG WEEK BUTTON
+   ===================== */
+.btn-log-week {
+  width: 100%;
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: opacity 0.2s;
+}
+
+.btn-log-week:hover {
+  opacity: 0.9;
+}
+
+.btn-log-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  font-family: var(--font-main);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.btn-log-inner .ti {
+  font-size: 22px;
+}
+
+.btn-log-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: #c4b5fd;
+  margin-top: 2px;
+}
+
+.btn-log-week > .ti {
+  color: white;
+  font-size: 18px;
+}
+
+/* =====================
+   SECTION LABEL
+   ===================== */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+/* =====================
+   SUBJECT LIST
+   ===================== */
+.subject-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+.subject-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.subject-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.subject-pct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.progress-bg {
+  background: var(--color-bg-secondary);
+  border-radius: 4px;
+  height: 6px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--color-accent);
+}
+
+.subject-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--color-text-secondary);
 }
