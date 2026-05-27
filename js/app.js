@@ -1041,6 +1041,15 @@ document.addEventListener('click', (e) => {
   if (toggleBtn) {
     toggleBtn.classList.toggle('open');
     const list = document.getElementById('archived-subjects-list');
-    if (list) list.classList.toggle('open');
+    if (list) {
+      list.classList.toggle('open');
+      // Re-render archived list on open to make sure it's current
+      if (list.classList.contains('open')) {
+        const family = loadData('family');
+        const child = family.children[currentChildIndex];
+        renderArchivedSubjects(child);
+        list.classList.add('open');
+      }
+    }
   }
 });
