@@ -147,6 +147,116 @@
     <div id="subject-list"></div>
     <button class="btn-ghost" id="btn-add-subject">+ Add subject</button>
   </div>
+  <!-- WEEK TYPE SCREEN -->
+  <div id="screen-week-type" class="screen">
+    <div class="screen-header">
+      <button class="btn-back" id="btn-back-from-week-type">
+        <i class="ti ti-arrow-left"></i> Back
+      </button>
+      <h1>How was this week?</h1>
+      <p id="week-type-label">Week 1 · May 25 – May 31</p>
+    </div>
+
+    <div class="week-type-grid">
+      <div class="week-type-card" id="select-school-week" data-type="school">
+        <div class="week-type-icon">📚</div>
+        <div class="week-type-name">School week</div>
+        <div class="week-type-desc">Log subjects and lessons</div>
+      </div>
+      <div class="week-type-card" id="select-adventure-week" data-type="adventure">
+        <div class="week-type-icon">🌍</div>
+        <div class="week-type-name">Break / adventure</div>
+        <div class="week-type-desc">Log an experience instead</div>
+      </div>
+    </div>
+
+    <div class="gem-notice" id="week-gem-notice">
+      <i class="ti ti-diamond"></i>
+      <span id="week-gem-notice-text">Log this week to keep your streak alive.</span>
+    </div>
+  </div>
+
+  <!-- SCHOOL WEEK LOG SCREEN -->
+  <div id="screen-school-log" class="screen">
+    <div class="screen-header">
+      <button class="btn-back" id="btn-back-from-school-log">
+        <i class="ti ti-arrow-left"></i> Back
+      </button>
+      <h1>This week's log</h1>
+      <p id="school-log-label">Week 1 · May 25 – May 31</p>
+    </div>
+
+    <div id="school-subject-entries"></div>
+
+    <div class="divider"></div>
+    <div class="glow-card">
+      <div class="glow-title">
+        <i class="ti ti-sparkles"></i> This week's glow
+      </div>
+      <textarea
+        id="school-glow-input"
+        class="glow-textarea"
+        placeholder="What's one thing worth remembering from this week?"
+        rows="3"
+      ></textarea>
+    </div>
+
+    <button class="btn-primary" id="btn-save-school-week">Save this week</button>
+  </div>
+
+  <!-- ADVENTURE WEEK — TAGS SCREEN -->
+  <div id="screen-adventure-tags" class="screen">
+    <div class="screen-header">
+      <button class="btn-back" id="btn-back-from-adventure-tags">
+        <i class="ti ti-arrow-left"></i> Back
+      </button>
+      <h1>What kind of experience?</h1>
+      <p>Pick all that apply.</p>
+    </div>
+
+    <div class="tag-grid">
+      <div class="exp-tag" data-tag="travel">✈️ Travel</div>
+      <div class="exp-tag" data-tag="nature">🐬 Nature / wildlife</div>
+      <div class="exp-tag" data-tag="museum">🏛️ Museum</div>
+      <div class="exp-tag" data-tag="history">📖 History</div>
+      <div class="exp-tag" data-tag="faith">⛪ Faith</div>
+      <div class="exp-tag" data-tag="sports">⚽ Sports</div>
+      <div class="exp-tag" data-tag="arts">🎨 Arts</div>
+      <div class="exp-tag" data-tag="lifeskills">🍳 Life skills</div>
+      <div class="exp-tag" data-tag="community">🤝 Community</div>
+      <div class="exp-tag" data-tag="other">✨ Other</div>
+    </div>
+
+    <button class="btn-primary" id="btn-adventure-tags-continue">Continue</button>
+  </div>
+
+  <!-- ADVENTURE WEEK — GLOW SCREEN -->
+  <div id="screen-adventure-glow" class="screen">
+    <div class="screen-header">
+      <button class="btn-back" id="btn-back-from-adventure-glow">
+        <i class="ti ti-arrow-left"></i> Back
+      </button>
+      <h1>Tell us about it</h1>
+      <p>This goes straight into your Wrapped highlight reel.</p>
+    </div>
+
+    <div class="form-group">
+      <label for="adventure-glow-input">What happened this week?</label>
+      <textarea
+        id="adventure-glow-input"
+        class="glow-textarea"
+        placeholder="e.g. We went on a cruise — Emma touched a dolphin!"
+        rows="4"
+      ></textarea>
+    </div>
+
+    <div class="gem-notice" id="adventure-gem-notice">
+      <i class="ti ti-diamond"></i>
+      <span id="adventure-gem-notice-text">Logging this experience keeps your streak alive.</span>
+    </div>
+
+    <button class="btn-primary" id="btn-save-adventure-week">Save this week</button>
+  </div>
 <!-- ADD SUBJECT SCREEN -->
   <div id="screen-add-subject" class="screen">
     <div class="screen-header">
