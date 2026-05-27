@@ -1,7 +1,9 @@
 // =====================
 // APP STATE
 // =====================
-const APP_VERSION = '1.0.0';
+let currentChildIndex = 0;
+let selectedGrade = null;
+let selectedAvatar = null;
 
 // =====================
 // LOCAL STORAGE HELPERS
@@ -16,14 +18,14 @@ function loadData(key) {
 }
 
 // =====================
-// FAMILY DATA STRUCTURE
+// DATA CONSTRUCTORS
 // =====================
 function createFamily(officialName, nickname, schoolYearStart) {
   return {
     id: Date.now(),
     officialName,
     nickname,
-    schoolYearStart, // e.g. "august"
+    schoolYearStart,
     children: [],
     createdAt: new Date().toISOString()
   };
@@ -41,44 +43,202 @@ function createChild(name, grade, avatar) {
   };
 }
 
-function createSubject(name, type, curriculum, totalLessons, duration, creditBearing, creditMethod) {
-  return {
-    id: Date.now(),
-    name,
-    type,        // "core", "elective", "enrichment"
-    curriculum,
-    totalLessons,
-    duration,    // "full" or "half"
-    creditBearing,
-    creditMethod, // "lessons" or "hours"
-    lessonsCompleted: 0,
-    hoursLogged: 0,
-    createdAt: new Date().toISOString()
-  };
+// =====================
+// SCREEN NAVIGATION
+// =====================
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  window.scrollTo(0, 0);
 }
 
-function createWeeklyLog(weekNumber, startDate, logType, subjectEntries, glow, experienceTags) {
-  return {
-    id: Date.now(),
-    weekNumber,
-    startDate,
-    logType,       // "school", "adventure", "empty"
-    subjectEntries, // array of { subjectId, lessonsCompleted, hoursLogged, notes }
-    glow,
-    experienceTags, // array e.g. ["travel", "nature"]
-    createdAt: new Date().toISOString()
-  };
+// =====================
+// ONBOARDING
+// =====================
+document.getElementById('btn-onboarding-continue').addEventListener('click', () => {
+  const officialName = document.getElementById('official-name').value.trim();
+  const nickname = document.getElementById('nickname').value.trim();
+  const schoolYearStart = document.getElementById('year-start').value;
+
+  if (!officialName || !nickname) {
+    alert('Please fill in both school names to continue.');
+    return;
+  }
+
+  const family = createFamily(officialName, nickname, schoolYearStart);
+  saveData('family', family);
+
+  document.getElementById('display-nickname').textContent = '✦ ' + nickname;
+
+  showScreen('screen-add-child');
+});
+
+// =====================
+// GRADE SELECTION
+// =====================
+document.querySelectorAll('.grade-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.grade-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    selectedGrade = chip.dataset.grade;
+  });
+});
+
+// =====================
+// AVATAR SELECTION
+// =====================
+document.querySelectorAll('.avatar-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.avatar-opt').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    selectedAvatar = opt.dataset.avatar;
+  });
+});
+
+// =====================
+// ADD CHILD
+// =====================
+document.getElementById('btn-add-child').addEventListener('click', () => {
+  const name = document.getElementById('child-name').value.trim();
+
+  if (!name) {
+    alert('Please enter your child\'s name.');
+    return;
+  }
+  if (!selectedGrade) {
+    alert('Please select a grade level.');
+    return;
+  }
+  if (!selectedAvatar) {
+    alert('Please pick an avatar.');
+    return;
+  }
+
+  const family = loadData('family');
+  const child = createChild(name, selectedGrade, selectedAvatar);
+  family.children.push(child);
+  saveData('family', family);
+
+  currentChildIndex = family.children.length - 1;
+  renderDashboard();
+  showScreen('screen-dashboard');
+});
+
+// =====================
+// DASHBOARD
+// =====================
+function renderDashboard() {
+  const family = loadData('family');
+  if (!family) return;
+
+  const child = family.children[currentChildIndex];
+
+  document.getElementById('display-nickname').textContent = '✦ ' + family.nickname;
+  document.getElementById('dashboard-avatar').textContent = child.avatar;
+  document.getElementById('dashboard-child-name').textContent = child.name;
+  document.getElementById('dashboard-child-grade').textContent = child.grade + ' grade · ' + new Date().getFullYear() + ' school year';
+  document.getElementById('dashboard-streak').innerHTML = '0 <span>week streak</span>';
+  document.getElementById('log-week-label').textContent = 'Week 1 · ' + getCurrentWeekDates();
+
+  renderChildSwitcher(family);
+  renderSubjectList(child);
 }
+
+function getCurrentWeekDates() {
+  const now = new Date();
+  const day = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const opts = { month: 'short', day: 'numeric' };
+  return monday.toLocaleDateString('en-US', opts) + ' – ' + sunday.toLocaleDateString('en-US', opts);
+}
+
+function renderChildSwitcher(family) {
+  const switcher = document.getElementById('child-switcher');
+  switcher.innerHTML = '';
+
+  family.children.forEach((child, index) => {
+    const chip = document.createElement('div');
+    chip.className = 'child-chip' + (index === currentChildIndex ? ' active' : '');
+    chip.innerHTML = `<div class="child-chip-avatar">${child.avatar}</div>${child.name}`;
+    chip.addEventListener('click', () => {
+      currentChildIndex = index;
+      renderDashboard();
+    });
+    switcher.appendChild(chip);
+  });
+
+  if (family.children.length < 5) {
+    const addChip = document.createElement('div');
+    addChip.className = 'child-chip';
+    addChip.style.borderStyle = 'dashed';
+    addChip.style.color = 'var(--color-primary)';
+    addChip.innerHTML = `<div class="child-chip-avatar" style="background:var(--color-primary-light)">+</div>Add child`;
+    addChip.addEventListener('click', () => {
+      document.getElementById('child-name').value = '';
+      selectedGrade = null;
+      selectedAvatar = null;
+      document.querySelectorAll('.grade-chip').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.avatar-opt').forEach(o => o.classList.remove('selected'));
+      showScreen('screen-add-child');
+    });
+    switcher.appendChild(addChip);
+  }
+}
+
+function renderSubjectList(child) {
+  const list = document.getElementById('subject-list');
+  list.innerHTML = '';
+
+  if (child.subjects.length === 0) {
+    list.innerHTML = `<p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:12px">No subjects set up yet. Add your first subject to get started.</p>`;
+    return;
+  }
+
+  child.subjects.forEach(subject => {
+    const pct = subject.totalLessons > 0
+      ? Math.round((subject.lessonsCompleted / subject.totalLessons) * 100)
+      : 0;
+
+    const card = document.createElement('div');
+    card.className = 'subject-card';
+    card.innerHTML = `
+      <div class="subject-header-row">
+        <span class="subject-name">${subject.name}</span>
+        <span class="subject-pct">${pct}%</span>
+      </div>
+      <div class="progress-bg">
+        <div class="progress-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="subject-meta">
+        <span>${subject.curriculum}</span>
+        <span>${subject.lessonsCompleted} of ${subject.totalLessons} lessons</span>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// =====================
+// ADD SUBJECT BUTTON
+// =====================
+document.getElementById('btn-add-subject').addEventListener('click', () => {
+  alert('Subject setup coming soon!');
+});
 
 // =====================
 // INIT
 // =====================
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Homeschool Tracker loaded');
   const family = loadData('family');
-  if (!family) {
-    console.log('No family found — show onboarding');
+  if (family && family.children.length > 0) {
+    renderDashboard();
+    showScreen('screen-dashboard');
+  } else if (family) {
+    showScreen('screen-add-child');
   } else {
-    console.log('Family found:', family.nickname);
+    showScreen('screen-onboarding');
   }
 });
