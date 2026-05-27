@@ -470,7 +470,6 @@ function getWeekNumber(family) {
 
   // Cap at 52 weeks
   return Math.min(52, Math.max(1, weeks));
-}max(1, weeks);
 }
 
 function formatWeekDates(startDate) {
