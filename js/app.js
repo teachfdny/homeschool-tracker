@@ -276,33 +276,38 @@ function renderSubjectList(child) {
   const list = document.getElementById('subject-list');
   list.innerHTML = '';
 
-  if (child.subjects.length === 0) {
+  const activeSubjects = child.subjects.filter(s => !s.archived);
+
+  if (activeSubjects.length === 0) {
     list.innerHTML = `<p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:12px">No subjects set up yet. Add your first subject to get started.</p>`;
-    return;
+  } else {
+    activeSubjects.forEach(subject => {
+      const pct = subject.totalLessons > 0
+        ? Math.round((subject.lessonsCompleted / subject.totalLessons) * 100)
+        : 0;
+
+      const card = document.createElement('div');
+      card.className = 'subject-card';
+      card.dataset.id = subject.id;
+      card.innerHTML = `
+        <div class="subject-header-row">
+          <span class="subject-name">${subject.name}</span>
+          <span class="subject-pct">${pct}%</span>
+        </div>
+        <div class="progress-bg">
+          <div class="progress-fill" style="width:${Math.min(pct,100)}%"></div>
+        </div>
+        <div class="subject-meta">
+          <span>${subject.curriculum}</span>
+          <span>${subject.lessonsCompleted} of ${subject.totalLessons} lessons</span>
+        </div>
+      `;
+      list.appendChild(card);
+    });
   }
 
-  child.subjects.forEach(subject => {
-    const pct = subject.totalLessons > 0
-      ? Math.round((subject.lessonsCompleted / subject.totalLessons) * 100)
-      : 0;
-
-    const card = document.createElement('div');
-    card.className = 'subject-card';
-    card.innerHTML = `
-      <div class="subject-header-row">
-        <span class="subject-name">${subject.name}</span>
-        <span class="subject-pct">${pct}%</span>
-      </div>
-      <div class="progress-bg">
-        <div class="progress-fill" style="width:${pct}%"></div>
-      </div>
-      <div class="subject-meta">
-        <span>${subject.curriculum}</span>
-        <span>${subject.lessonsCompleted} of ${subject.totalLessons} lessons</span>
-      </div>
-    `;
-    list.appendChild(card);
-  });
+  attachSubjectCardListeners();
+  renderArchivedSubjects(child);
 }
 
 
