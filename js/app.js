@@ -810,3 +810,221 @@ document.getElementById('btn-save-adventure-week').addEventListener('click', () 
   renderDashboard();
   showScreen('screen-dashboard');
 });
+// =====================
+// EDIT SUBJECT STATE
+// =====================
+let editingSubjectId = null;
+let editCreditBearing = false;
+let editCreditMethod = 'lessons';
+
+// =====================
+// OPEN EDIT SCREEN
+// =====================
+function openEditSubject(subjectId) {
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const subject = child.subjects.find(s => s.id === subjectId);
+  if (!subject) return;
+
+  editingSubjectId = subjectId;
+  editCreditBearing = subject.creditBearing;
+  editCreditMethod = subject.creditMethod || 'lessons';
+
+  // Pre-fill form
+  document.getElementById('edit-subject-name').value = subject.name;
+  document.getElementById('edit-subject-type').value = subject.type;
+  document.getElementById('edit-subject-curriculum').value = subject.curriculum;
+  document.getElementById('edit-subject-lessons').value = subject.totalLessons;
+  document.getElementById('edit-subject-duration').value = subject.duration;
+
+  // Credit toggle
+  const toggle = document.getElementById('edit-credit-toggle');
+  const creditOptions = document.getElementById('edit-credit-options');
+  if (subject.creditBearing) {
+    toggle.classList.add('on');
+    creditOptions.style.opacity = '1';
+    creditOptions.style.pointerEvents = 'auto';
+  } else {
+    toggle.classList.remove('on');
+    creditOptions.style.opacity = '0.35';
+    creditOptions.style.pointerEvents = 'none';
+  }
+
+  // Credit method
+  document.querySelectorAll('#edit-credit-options .credit-method').forEach(m => {
+    m.classList.remove('selected');
+    m.querySelector('.radio').classList.remove('selected');
+  });
+  const activeMethod = document.getElementById(
+    editCreditMethod === 'hours' ? 'edit-method-hours' : 'edit-method-lessons'
+  );
+  if (activeMethod) {
+    activeMethod.classList.add('selected');
+    activeMethod.querySelector('.radio').classList.add('selected');
+  }
+
+  showScreen('screen-edit-subject');
+}
+
+// =====================
+// SUBJECT CARD CLICK
+// =====================
+function attachSubjectCardListeners() {
+  document.querySelectorAll('.subject-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const subjectId = parseInt(card.dataset.id);
+      if (subjectId) openEditSubject(subjectId);
+    });
+  });
+}
+
+// =====================
+// BACK FROM EDIT
+// =====================
+document.getElementById('btn-back-from-edit-subject').addEventListener('click', () => {
+  showScreen('screen-dashboard');
+});
+
+// =====================
+// EDIT CREDIT TOGGLE
+// =====================
+document.getElementById('edit-credit-toggle').addEventListener('click', () => {
+  editCreditBearing = !editCreditBearing;
+  const toggle = document.getElementById('edit-credit-toggle');
+  const creditOptions = document.getElementById('edit-credit-options');
+  if (editCreditBearing) {
+    toggle.classList.add('on');
+    creditOptions.style.opacity = '1';
+    creditOptions.style.pointerEvents = 'auto';
+  } else {
+    toggle.classList.remove('on');
+    creditOptions.style.opacity = '0.35';
+    creditOptions.style.pointerEvents = 'none';
+  }
+});
+
+// =====================
+// EDIT CREDIT METHOD
+// =====================
+document.querySelectorAll('#edit-credit-options .credit-method').forEach(method => {
+  method.addEventListener('click', () => {
+    document.querySelectorAll('#edit-credit-options .credit-method').forEach(m => {
+      m.classList.remove('selected');
+      m.querySelector('.radio').classList.remove('selected');
+    });
+    method.classList.add('selected');
+    method.querySelector('.radio').classList.add('selected');
+    editCreditMethod = method.dataset.method;
+  });
+});
+
+// =====================
+// SAVE EDIT
+// =====================
+document.getElementById('btn-save-edit-subject').addEventListener('click', () => {
+  const name = document.getElementById('edit-subject-name').value.trim();
+  const type = document.getElementById('edit-subject-type').value;
+  const curriculum = document.getElementById('edit-subject-curriculum').value.trim();
+  const totalLessons = parseInt(document.getElementById('edit-subject-lessons').value);
+  const duration = document.getElementById('edit-subject-duration').value;
+
+  if (!name) { alert('Please enter a subject name.'); return; }
+  if (!curriculum) { alert('Please enter a curriculum name.'); return; }
+  if (!totalLessons || totalLessons < 1) { alert('Please enter total lessons.'); return; }
+
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const subjectIndex = child.subjects.findIndex(s => s.id === editingSubjectId);
+  if (subjectIndex === -1) return;
+
+  // Preserve completed lessons and hours
+  const existing = child.subjects[subjectIndex];
+  child.subjects[subjectIndex] = {
+    ...existing,
+    name,
+    type,
+    curriculum,
+    totalLessons: Math.max(totalLessons, existing.lessonsCompleted),
+    duration,
+    creditBearing: editCreditBearing,
+    creditMethod: editCreditMethod
+  };
+
+  family.children[currentChildIndex] = child;
+  saveData('family', family);
+
+  renderDashboard();
+  showScreen('screen-dashboard');
+});
+
+// =====================
+// ARCHIVE SUBJECT
+// =====================
+document.getElementById('btn-archive-subject').addEventListener('click', () => {
+  if (!confirm('Archive this subject? It will be removed from your dashboard and log screens but preserved in your year history.')) return;
+
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const subjectIndex = child.subjects.findIndex(s => s.id === editingSubjectId);
+  if (subjectIndex === -1) return;
+
+  child.subjects[subjectIndex].archived = true;
+  family.children[currentChildIndex] = child;
+  saveData('family', family);
+
+  renderDashboard();
+  showScreen('screen-dashboard');
+});
+
+// =====================
+// RENDER ARCHIVED SUBJECTS
+// =====================
+function renderArchivedSubjects(child) {
+  const archived = child.subjects.filter(s => s.archived);
+  const container = document.getElementById('archived-subjects-container');
+  if (!container) return;
+
+  if (archived.length === 0) {
+    container.innerHTML = '';
+    document.getElementById('archived-toggle-btn').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('archived-toggle-btn').style.display = 'flex';
+
+  const list = document.getElementById('archived-subjects-list');
+  if (!list) return;
+
+  list.innerHTML = archived.map(subject => {
+    const pct = subject.totalLessons > 0
+      ? Math.round((subject.lessonsCompleted / subject.totalLessons) * 100)
+      : 0;
+    return `
+      <div class="archived-card">
+        <div class="archived-card-left">
+          <div class="archived-card-name">${subject.name}</div>
+          <div class="archived-card-curriculum">${subject.curriculum}</div>
+          <div class="archived-card-pct">${pct}% complete when archived</div>
+        </div>
+        <button class="btn-unarchive" data-id="${subject.id}">Restore</button>
+      </div>
+    `;
+  }).join('');
+
+  // Unarchive listeners
+  list.querySelectorAll('.btn-unarchive').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = parseInt(btn.dataset.id);
+      const family = loadData('family');
+      const child = family.children[currentChildIndex];
+      const subjectIndex = child.subjects.findIndex(s => s.id === id);
+      if (subjectIndex !== -1) {
+        child.subjects[subjectIndex].archived = false;
+        family.children[currentChildIndex] = child;
+        saveData('family', family);
+        renderDashboard();
+      }
+    });
+  });
+}
