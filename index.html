@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Homeschool Tracker</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ONBOARDING SCREEN -->
+  <div id="screen-onboarding" class="screen active">
+    <div class="screen-header">
+      <h1>Welcome to your homeschool tracker</h1>
+      <p>Let's get your family set up.</p>
+    </div>
+
+    <div class="form-group">
+      <label for="official-name">Official school name</label>
+      <input type="text" id="official-name" placeholder="e.g. Henderson Family Academy" />
+      <span class="hint private">
+        <i class="ti ti-lock"></i> For transcripts only — never shared publicly
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label for="nickname">Homeschool nickname</label>
+      <input type="text" id="nickname" placeholder="e.g. Chaos Academy" />
+      <span class="hint public">
+        <i class="ti ti-sparkles"></i> Appears on your Wrapped and in the app
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label for="year-start">School year starts in</label>
+      <select id="year-start">
+        <option value="january">January</option>
+        <option value="february">February</option>
+        <option value="march">March</option>
+        <option value="april">April</option>
+        <option value="may">May</option>
+        <option value="june">June</option>
+        <option value="july">July</option>
+        <option value="august" selected>August</option>
+        <option value="september">September</option>
+        <option value="october">October</option>
+        <option value="november">November</option>
+        <option value="december">December</option>
+      </select>
+    </div>
+
+    <button class="btn-primary" id="btn-onboarding-continue">Continue</button>
+  </div>
+
+  <!-- ADD CHILD SCREEN -->
+  <div id="screen-add-child" class="screen">
+    <div class="screen-header">
+      <h1>Who are you teaching?</h1>
+      <p>You can add up to 5 kids. Add more any time.</p>
+    </div>
+
+    <div class="form-group">
+      <label for="child-name">Child's first name</label>
+      <input type="text" id="child-name" placeholder="First name" />
+    </div>
+
+    <div class="form-group">
+      <label>Grade level</label>
+      <div class="grade-grid" id="grade-grid">
+        <div class="grade-chip" data-grade="K">K</div>
+        <div class="grade-chip" data-grade="1st">1st</div>
+        <div class="grade-chip" data-grade="2nd">2nd</div>
+        <div class="grade-chip" data-grade="3rd">3rd</div>
+        <div class="grade-chip" data-grade="4th">4th</div>
+        <div class="grade-chip" data-grade="5th">5th</div>
+        <div class="grade-chip" data-grade="6th">6th</div>
+        <div class="grade-chip" data-grade="7th">7th</div>
+        <div class="grade-chip" data-grade="8th">8th</div>
+        <div class="grade-chip" data-grade="9th">9th</div>
+        <div class="grade-chip" data-grade="10th">10th</div>
+        <div class="grade-chip" data-grade="11th">11th</div>
+        <div class="grade-chip" data-grade="12th">12th</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Pick an avatar</label>
+      <div class="avatar-grid" id="avatar-grid">
+        <div class="avatar-opt" data-avatar="🦋">🦋</div>
+        <div class="avatar-opt" data-avatar="🌙">🌙</div>
+        <div class="avatar-opt" data-avatar="⭐">⭐</div>
+        <div class="avatar-opt" data-avatar="🌈">🌈</div>
+        <div class="avatar-opt" data-avatar="🦄">🦄</div>
+        <div class="avatar-opt" data-avatar="🌸">🌸</div>
+        <div class="avatar-opt" data-avatar="🐉">🐉</div>
+        <div class="avatar-opt" data-avatar="🔮">🔮</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-add-child">Add child</button>
+  </div>
+
+  <!-- DASHBOARD SCREEN -->
+  <div id="screen-dashboard" class="screen">
+    <div class="top-bar">
+      <span class="school-nickname" id="display-nickname">✦ Chaos Academy</span>
+      <button class="icon-btn"><i class="ti ti-settings"></i></button>
+    </div>
+
+    <div class="child-switcher" id="child-switcher"></div>
+
+    <div class="child-hero">
+      <div class="child-row">
+        <div class="child-avatar-lg" id="dashboard-avatar"></div>
+        <div>
+          <div class="child-name-lg" id="dashboard-child-name"></div>
+          <div class="child-grade-lg" id="dashboard-child-grade"></div>
+        </div>
+      </div>
+      <div class="streak-row">
+        <div class="streak-num" id="dashboard-streak">0 <span>week streak</span></div>
+      </div>
+    </div>
+
+    <button class="btn-log-week" id="btn-log-week">
+      <div class="btn-log-inner">
+        <i class="ti ti-notebook"></i>
+        <div>
+          <div>Log this week</div>
+          <div class="btn-log-sub" id="log-week-label"></div>
+        </div>
+      </div>
+      <i class="ti ti-arrow-right"></i>
+    </button>
+
+    <div class="section-label">Subjects this year</div>
+    <div id="subject-list"></div>
+    <button class="btn-ghost" id="btn-add-subject">+ Add subject</button>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
