@@ -453,11 +453,24 @@ function getWeekNumber(family) {
   const monthNames = ['january','february','march','april','may','june',
     'july','august','september','october','november','december'];
   const startMonthIndex = monthNames.indexOf(family.schoolYearStart);
-  const startYear = now.getMonth() >= startMonthIndex ? now.getFullYear() : now.getFullYear() - 1;
+
+  // Find the most recent school year start date
+  let startYear = now.getFullYear();
+  if (now.getMonth() < startMonthIndex) {
+    startYear = now.getFullYear() - 1;
+  }
+
   const schoolStart = new Date(startYear, startMonthIndex, 1);
+
+  // If date is before school start, return 1
+  if (now < schoolStart) return 1;
+
   const diff = now - schoolStart;
   const weeks = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
-  return Math.max(1, weeks);
+
+  // Cap at 52 weeks
+  return Math.min(52, Math.max(1, weeks));
+}max(1, weeks);
 }
 
 function formatWeekDates(startDate) {
