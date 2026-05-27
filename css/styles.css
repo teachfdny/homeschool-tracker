@@ -946,3 +946,21 @@ body {
   color: var(--color-primary-dark);
   font-weight: 600;
 }
+/* =====================
+   GEM DISPLAY
+   ===================== */
+.gem-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.gem-display svg {
+  cursor: default;
+  transition: transform 0.15s;
+}
+
+.gem-display svg:hover {
+  transform: scale(1.15);
+}
