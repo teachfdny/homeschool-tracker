@@ -990,8 +990,11 @@ body {
   font-size: 14px;
   color: var(--color-text);
   line-height: 1.5;
+  background: var(--color-bg);
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
 }
-
 .glow-entry-meta {
   font-size: 11px;
   color: var(--color-text-secondary);
