@@ -242,3 +242,110 @@ document.addEventListener('DOMContentLoaded', () => {
     showScreen('screen-onboarding');
   }
 });
+// =====================
+// ADD SUBJECT SCREEN
+// =====================
+let selectedCreditMethod = 'lessons';
+let creditBearing = false;
+
+document.getElementById('btn-add-subject').addEventListener('click', () => {
+  showScreen('screen-add-subject');
+});
+
+document.getElementById('btn-back-from-subject').addEventListener('click', () => {
+  showScreen('screen-dashboard');
+});
+
+// Credit toggle
+document.getElementById('credit-toggle').addEventListener('click', () => {
+  creditBearing = !creditBearing;
+  const toggle = document.getElementById('credit-toggle');
+  const creditOptions = document.getElementById('credit-options');
+
+  if (creditBearing) {
+    toggle.classList.add('on');
+    creditOptions.style.opacity = '1';
+    creditOptions.style.pointerEvents = 'auto';
+  } else {
+    toggle.classList.remove('on');
+    creditOptions.style.opacity = '0.35';
+    creditOptions.style.pointerEvents = 'none';
+  }
+});
+
+// Credit method selection
+document.querySelectorAll('.credit-method').forEach(method => {
+  method.addEventListener('click', () => {
+    document.querySelectorAll('.credit-method').forEach(m => {
+      m.classList.remove('selected');
+      m.querySelector('.radio').classList.remove('selected');
+    });
+    method.classList.add('selected');
+    method.querySelector('.radio').classList.add('selected');
+    selectedCreditMethod = method.dataset.method;
+  });
+});
+
+// Save subject
+document.getElementById('btn-save-subject').addEventListener('click', () => {
+  const name = document.getElementById('subject-name').value.trim();
+  const type = document.getElementById('subject-type').value;
+  const curriculum = document.getElementById('subject-curriculum').value.trim();
+  const totalLessons = parseInt(document.getElementById('subject-lessons').value);
+  const duration = document.getElementById('subject-duration').value;
+
+  if (!name) {
+    alert('Please enter a subject name.');
+    return;
+  }
+  if (!curriculum) {
+    alert('Please enter a curriculum or resource name.');
+    return;
+  }
+  if (!totalLessons || totalLessons < 1) {
+    alert('Please enter the total number of lessons.');
+    return;
+  }
+
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+
+  const subject = {
+    id: Date.now(),
+    name,
+    type,
+    curriculum,
+    totalLessons,
+    duration,
+    creditBearing,
+    creditMethod: selectedCreditMethod,
+    lessonsCompleted: 0,
+    hoursLogged: 0,
+    createdAt: new Date().toISOString()
+  };
+
+  child.subjects.push(subject);
+  family.children[currentChildIndex] = child;
+  saveData('family', family);
+
+  // Reset form for next use
+  document.getElementById('subject-name').value = '';
+  document.getElementById('subject-curriculum').value = '';
+  document.getElementById('subject-lessons').value = '';
+  document.getElementById('subject-duration').value = 'full';
+  document.getElementById('subject-type').value = 'core';
+  creditBearing = false;
+  selectedCreditMethod = 'lessons';
+  document.getElementById('credit-toggle').classList.remove('on');
+  document.getElementById('credit-options').style.opacity = '0.35';
+  document.getElementById('credit-options').style.pointerEvents = 'none';
+  document.querySelectorAll('.credit-method').forEach(m => {
+    m.classList.remove('selected');
+    m.querySelector('.radio').classList.remove('selected');
+  });
+  document.getElementById('method-lessons').classList.add('selected');
+  document.getElementById('method-lessons').querySelector('.radio').classList.add('selected');
+
+  renderDashboard();
+  showScreen('screen-dashboard');
+});
