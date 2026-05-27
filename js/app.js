@@ -174,6 +174,12 @@ function renderDashboard() {
   document.getElementById('dashboard-child-grade').textContent = child.grade + ' grade · ' + new Date().getFullYear() + ' school year';
   const streak = calculateStreak(child);
   document.getElementById('dashboard-streak').innerHTML = streak + ' <span>week streak</span>';
+  // Render gems
+  const earnedGems = getEarnedGems(child, family);
+  const gemContainer = document.getElementById('dashboard-gems');
+  if (gemContainer) {
+    gemContainer.innerHTML = earnedGems.map(gem => renderGemSVG(gem, 20)).join('');
+  }
   document.getElementById('log-week-label').textContent = 'Week 1 · ' + getCurrentWeekDates();
 
   renderChildSwitcher(family);
@@ -418,7 +424,72 @@ function formatWeekDates(startDate) {
   const opts = { month: 'short', day: 'numeric' };
   return startDate.toLocaleDateString('en-US', opts) + ' – ' + end.toLocaleDateString('en-US', opts);
 }
+// =====================
+// GEM CALCULATION
+// =====================
+function getEarnedGems(child, family) {
+  const gems = [
+    { month: 0, name: 'Garnet', color: '#8B0000', stroke: '#c0392b' },
+    { month: 1, name: 'Amethyst', color: '#4a235a', stroke: '#8e44ad' },
+    { month: 2, name: 'Aquamarine', color: '#1a6b7a', stroke: '#1abc9c' },
+    { month: 3, name: 'Diamond', color: '#c8d8e8', stroke: '#e8f4f8' },
+    { month: 4, name: 'Emerald', color: '#145a32', stroke: '#27ae60' },
+    { month: 5, name: 'Pearl', color: '#c0a080', stroke: '#f0d0a0' },
+    { month: 6, name: 'Ruby', color: '#7b0000', stroke: '#e74c3c' },
+    { month: 7, name: 'Peridot', color: '#4a6741', stroke: '#82c366' },
+    { month: 8, name: 'Sapphire', color: '#1a3a6b', stroke: '#5b8dd9' },
+    { month: 9, name: 'Opal', color: '#5c3a1e', stroke: '#c8a060' },
+    { month: 10, name: 'Topaz', color: '#2d4a6b', stroke: '#6a9fd8' },
+    { month: 11, name: 'Turquoise', color: '#0d4f4f', stroke: '#38bdf8' }
+  ];
 
+  // Get school year start month index
+  const monthNames = ['january','february','march','april','may','june',
+    'july','august','september','october','november','december'];
+  const startMonthIndex = monthNames.indexOf(family.schoolYearStart || 'august');
+
+  // Build ordered gem list starting from school year start month
+  const orderedGems = [];
+  for (let i = 0; i < 12; i++) {
+    const monthIndex = (startMonthIndex + i) % 12;
+    orderedGems.push(gems[monthIndex]);
+  }
+
+  // Figure out which months have at least one log
+  const loggedMonths = new Set();
+  if (child.weeklyLogs) {
+    child.weeklyLogs.forEach(log => {
+      const date = new Date(log.startDate);
+      loggedMonths.add(date.getMonth());
+    });
+  }
+
+  // Mark each gem as earned or not
+  return orderedGems.map(gem => ({
+    ...gem,
+    earned: loggedMonths.has(gem.month)
+  }));
+}
+
+function renderGemSVG(gem, size = 24) {
+  const h = Math.round(size * 1.2);
+  if (!gem.earned) {
+    return `<svg width="${size}" height="${h}" viewBox="0 0 30 36" title="${gem.name}">
+      <polygon points="15,2 28,10 28,26 15,34 2,26 2,10"
+        fill="#2a2040" stroke="#3d3060" stroke-width="0.5" opacity="0.4"/>
+    </svg>`;
+  }
+  return `<svg width="${size}" height="${h}" viewBox="0 0 30 36" title="${gem.name}">
+    <polygon points="15,2 28,10 28,26 15,34 2,26 2,10"
+      fill="${gem.color}" stroke="${gem.stroke}" stroke-width="0.5"/>
+    <polygon points="15,2 28,10 15,18"
+      fill="${gem.stroke}" opacity="0.5"/>
+    <polygon points="15,2 2,10 15,18"
+      fill="${gem.color}" opacity="0.8"/>
+    <line x1="12" y1="8" x2="18" y2="14"
+      stroke="white" stroke-width="0.5" opacity="0.4"/>
+  </svg>`;
+}
 function getCurrentMonthGem() {
   const gems = [
     { name: 'Garnet', color: '#8B0000' },
