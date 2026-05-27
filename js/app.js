@@ -123,7 +123,42 @@ document.getElementById('btn-add-child').addEventListener('click', () => {
   renderDashboard();
   showScreen('screen-dashboard');
 });
+// =====================
+// STREAK CALCULATION
+// =====================
+function calculateStreak(child) {
+  if (!child.weeklyLogs || child.weeklyLogs.length === 0) return 0;
 
+  // Sort logs by week number descending
+  const logs = [...child.weeklyLogs].sort((a, b) => b.weekNumber - a.weekNumber);
+
+  const family = loadData('family');
+  const currentWeek = getWeekNumber(family);
+
+  let streak = 0;
+  let expectedWeek = currentWeek;
+
+  // Allow one grace week gap
+  let graceUsed = false;
+
+  for (let i = 0; i < logs.length; i++) {
+    const log = logs[i];
+
+    if (log.weekNumber === expectedWeek) {
+      streak++;
+      expectedWeek--;
+    } else if (!graceUsed && log.weekNumber === expectedWeek - 1) {
+      // Gap of one week — use grace
+      graceUsed = true;
+      streak++;
+      expectedWeek = log.weekNumber - 1;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
 // =====================
 // DASHBOARD
 // =====================
@@ -137,7 +172,8 @@ function renderDashboard() {
   document.getElementById('dashboard-avatar').textContent = child.avatar;
   document.getElementById('dashboard-child-name').textContent = child.name;
   document.getElementById('dashboard-child-grade').textContent = child.grade + ' grade · ' + new Date().getFullYear() + ' school year';
-  document.getElementById('dashboard-streak').innerHTML = '0 <span>week streak</span>';
+  const streak = calculateStreak(child);
+  document.getElementById('dashboard-streak').innerHTML = streak + ' <span>week streak</span>';
   document.getElementById('log-week-label').textContent = 'Week 1 · ' + getCurrentWeekDates();
 
   renderChildSwitcher(family);
