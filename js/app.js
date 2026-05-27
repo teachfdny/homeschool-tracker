@@ -1033,3 +1033,14 @@ function renderArchivedSubjects(child) {
     });
   });
 }
+// =====================
+// ARCHIVED TOGGLE
+// =====================
+document.addEventListener('click', (e) => {
+  const toggleBtn = e.target.closest('#archived-toggle-btn');
+  if (toggleBtn) {
+    toggleBtn.classList.toggle('open');
+    const list = document.getElementById('archived-subjects-list');
+    if (list) list.classList.toggle('open');
+  }
+});
