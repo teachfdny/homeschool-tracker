@@ -147,7 +147,90 @@
     <div id="subject-list"></div>
     <button class="btn-ghost" id="btn-add-subject">+ Add subject</button>
   </div>
+<!-- ADD SUBJECT SCREEN -->
+  <div id="screen-add-subject" class="screen">
+    <div class="screen-header">
+      <button class="btn-back" id="btn-back-from-subject">
+        <i class="ti ti-arrow-left"></i> Back
+      </button>
+      <h1>Set up a subject</h1>
+      <p>You can edit this any time.</p>
+    </div>
 
+    <div class="form-group">
+      <label for="subject-name">Subject name</label>
+      <input type="text" id="subject-name" placeholder="e.g. Language Arts" />
+    </div>
+
+    <div class="form-group">
+      <label for="subject-type">Subject type</label>
+      <select id="subject-type">
+        <option value="core">Core subject</option>
+        <option value="elective">Elective</option>
+        <option value="enrichment">Enrichment</option>
+      </select>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">Curriculum</div>
+
+    <div class="form-group">
+      <label for="subject-curriculum">Curriculum or resource name</label>
+      <input type="text" id="subject-curriculum" placeholder="e.g. Saxon Math 3, or library books" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="subject-lessons">Total lessons</label>
+        <input type="number" id="subject-lessons" placeholder="e.g. 84" min="1" />
+      </div>
+      <div class="form-group">
+        <label for="subject-duration">Duration</label>
+        <select id="subject-duration">
+          <option value="full">Full year</option>
+          <option value="half">Half year</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <i class="ti ti-info-circle"></i>
+      <span>As you log completed lessons each week, your progress percentage calculates automatically.</span>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">High school credit tracking</div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Credit-bearing course</div>
+        <div class="toggle-sub">Track toward transcript</div>
+      </div>
+      <div class="toggle-switch" id="credit-toggle" data-on="false">
+        <div class="toggle-knob"></div>
+      </div>
+    </div>
+
+    <div id="credit-options" style="opacity:0.35;pointer-events:none">
+      <div class="credit-method" id="method-lessons" data-method="lessons">
+        <div class="radio selected"></div>
+        <div>
+          <div class="method-label">Lesson completion</div>
+          <div class="method-sub">Based on % of curriculum finished</div>
+        </div>
+      </div>
+      <div class="credit-method" id="method-hours" data-method="hours">
+        <div class="radio"></div>
+        <div>
+          <div class="method-label">Hours logged</div>
+          <div class="method-sub">Based on instruction time tracked</div>
+        </div>
+      </div>
+      <p class="hint-text">Credit options unlock when course is marked credit-bearing</p>
+    </div>
+
+    <button class="btn-primary" id="btn-save-subject">Save subject</button>
+  </div>
   <script src="js/app.js"></script>
 </body>
 </html>
