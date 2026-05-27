@@ -344,3 +344,308 @@ document.getElementById('btn-save-subject').addEventListener('click', () => {
   renderDashboard();
   showScreen('screen-dashboard');
 });
+// =====================
+// WEEKLY LOG STATE
+// =====================
+let currentWeekType = null;
+let selectedExperienceTags = [];
+let currentWeekNumber = 1;
+let currentWeekStartDate = null;
+
+// =====================
+// WEEK HELPERS
+// =====================
+function getWeekStartDate() {
+  const now = new Date();
+  const day = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  return monday;
+}
+
+function getWeekNumber(family) {
+  if (!family.schoolYearStart) return 1;
+  const now = new Date();
+  const monthNames = ['january','february','march','april','may','june',
+    'july','august','september','october','november','december'];
+  const startMonthIndex = monthNames.indexOf(family.schoolYearStart);
+  const startYear = now.getMonth() >= startMonthIndex ? now.getFullYear() : now.getFullYear() - 1;
+  const schoolStart = new Date(startYear, startMonthIndex, 1);
+  const diff = now - schoolStart;
+  const weeks = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
+  return Math.max(1, weeks);
+}
+
+function formatWeekDates(startDate) {
+  const end = new Date(startDate);
+  end.setDate(startDate.getDate() + 6);
+  const opts = { month: 'short', day: 'numeric' };
+  return startDate.toLocaleDateString('en-US', opts) + ' – ' + end.toLocaleDateString('en-US', opts);
+}
+
+function getCurrentMonthGem() {
+  const gems = [
+    { name: 'Garnet', color: '#8B0000' },
+    { name: 'Amethyst', color: '#4a235a' },
+    { name: 'Aquamarine', color: '#1a6b7a' },
+    { name: 'Diamond', color: '#c8d8e8' },
+    { name: 'Emerald', color: '#145a32' },
+    { name: 'Pearl', color: '#c0a080' },
+    { name: 'Ruby', color: '#7b0000' },
+    { name: 'Peridot', color: '#4a6741' },
+    { name: 'Sapphire', color: '#1a3a6b' },
+    { name: 'Opal', color: '#5c3a1e' },
+    { name: 'Topaz', color: '#2d4a6b' },
+    { name: 'Turquoise', color: '#1a3a6b' }
+  ];
+  return gems[new Date().getMonth()];
+}
+
+// =====================
+// LOG THIS WEEK BUTTON
+// =====================
+document.getElementById('btn-log-week').addEventListener('click', () => {
+  const family = loadData('family');
+  currentWeekStartDate = getWeekStartDate();
+  currentWeekNumber = getWeekNumber(family);
+  const weekLabel = 'Week ' + currentWeekNumber + ' · ' + formatWeekDates(currentWeekStartDate);
+
+  document.getElementById('week-type-label').textContent = weekLabel;
+
+  const gem = getCurrentMonthGem();
+  document.getElementById('week-gem-notice-text').textContent =
+    'Log this week to work toward your ' + gem.name + ' — ' + new Date().toLocaleString('default', { month: 'long' }) + '\'s gem.';
+
+  currentWeekType = null;
+  document.querySelectorAll('.week-type-card').forEach(c => c.classList.remove('selected'));
+
+  showScreen('screen-week-type');
+});
+
+// =====================
+// WEEK TYPE SELECTION
+// =====================
+document.getElementById('select-school-week').addEventListener('click', () => {
+  currentWeekType = 'school';
+  document.querySelectorAll('.week-type-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('select-school-week').classList.add('selected');
+
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const weekLabel = 'Week ' + currentWeekNumber + ' · ' + formatWeekDates(currentWeekStartDate);
+  document.getElementById('school-log-label').textContent = weekLabel;
+
+  renderSchoolLogEntries(child);
+  document.getElementById('school-glow-input').value = '';
+
+  setTimeout(() => showScreen('screen-school-log'), 150);
+});
+
+document.getElementById('select-adventure-week').addEventListener('click', () => {
+  currentWeekType = 'adventure';
+  document.querySelectorAll('.week-type-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('select-adventure-week').classList.add('selected');
+
+  selectedExperienceTags = [];
+  document.querySelectorAll('.exp-tag').forEach(t => t.classList.remove('selected'));
+
+  setTimeout(() => showScreen('screen-adventure-tags'), 150);
+});
+
+// =====================
+// SCHOOL LOG — RENDER SUBJECTS
+// =====================
+function renderSchoolLogEntries(child) {
+  const container = document.getElementById('school-subject-entries');
+  container.innerHTML = '';
+
+  if (child.subjects.length === 0) {
+    container.innerHTML = `<p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:16px">No subjects set up yet. Add subjects from the dashboard first.</p>`;
+    return;
+  }
+
+  child.subjects.forEach(subject => {
+    const card = document.createElement('div');
+    card.className = 'subject-log-card';
+
+    const tagClass = 'tag-' + subject.type;
+
+    card.innerHTML = `
+      <div class="subject-log-header" data-id="${subject.id}">
+        <div class="subject-log-header-left">
+          <span class="subject-log-name">${subject.name}</span>
+          <span class="subject-type-tag ${tagClass}">${subject.type}</span>
+        </div>
+        <i class="ti ti-chevron-down" style="color:var(--color-text-secondary);font-size:16px"></i>
+      </div>
+      <div class="subject-log-body" id="log-body-${subject.id}">
+        <div class="subject-log-row">
+          <div class="subject-log-field">
+            <label>Lessons completed</label>
+            <input type="number" min="0" placeholder="0"
+              id="lessons-${subject.id}" />
+          </div>
+          <div class="subject-log-field">
+            <label>Hours (optional)</label>
+            <input type="number" min="0" step="0.5" placeholder="0"
+              id="hours-${subject.id}" />
+          </div>
+        </div>
+        <div class="subject-log-wide">
+          <label>Notes</label>
+          <input type="text" placeholder="What did you cover?"
+            id="notes-${subject.id}" />
+        </div>
+      </div>
+      <div class="subject-collapsed-hint" id="hint-${subject.id}">Tap to log this week's work</div>
+    `;
+
+    container.appendChild(card);
+
+    // Toggle open/close
+    card.querySelector('.subject-log-header').addEventListener('click', () => {
+      const body = document.getElementById('log-body-' + subject.id);
+      const hint = document.getElementById('hint-' + subject.id);
+      const icon = card.querySelector('.ti-chevron-down, .ti-chevron-up');
+      const isOpen = body.classList.contains('open');
+
+      body.classList.toggle('open');
+      hint.style.display = isOpen ? 'block' : 'none';
+      icon.className = isOpen ? 'ti ti-chevron-down' : 'ti ti-chevron-up';
+      icon.style.color = 'var(--color-text-secondary)';
+      icon.style.fontSize = '16px';
+    });
+  });
+}
+
+// =====================
+// BACK BUTTONS — LOG FLOW
+// =====================
+document.getElementById('btn-back-from-week-type').addEventListener('click', () => {
+  showScreen('screen-dashboard');
+});
+
+document.getElementById('btn-back-from-school-log').addEventListener('click', () => {
+  showScreen('screen-week-type');
+});
+
+document.getElementById('btn-back-from-adventure-tags').addEventListener('click', () => {
+  showScreen('screen-week-type');
+});
+
+document.getElementById('btn-back-from-adventure-glow').addEventListener('click', () => {
+  showScreen('screen-adventure-tags');
+});
+
+// =====================
+// SAVE SCHOOL WEEK
+// =====================
+document.getElementById('btn-save-school-week').addEventListener('click', () => {
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const glow = document.getElementById('school-glow-input').value.trim();
+
+  const subjectEntries = [];
+  child.subjects.forEach(subject => {
+    const lessonsEl = document.getElementById('lessons-' + subject.id);
+    const hoursEl = document.getElementById('hours-' + subject.id);
+    const notesEl = document.getElementById('notes-' + subject.id);
+
+    const lessons = parseInt(lessonsEl?.value) || 0;
+    const hours = parseFloat(hoursEl?.value) || 0;
+    const notes = notesEl?.value.trim() || '';
+
+    if (lessons > 0 || hours > 0 || notes) {
+      subjectEntries.push({
+        subjectId: subject.id,
+        lessonsCompleted: lessons,
+        hoursLogged: hours,
+        notes
+      });
+
+      // Update subject totals
+      subject.lessonsCompleted += lessons;
+      subject.hoursLogged += hours;
+    }
+  });
+
+  const log = {
+    id: Date.now(),
+    weekNumber: currentWeekNumber,
+    startDate: currentWeekStartDate.toISOString(),
+    logType: 'school',
+    subjectEntries,
+    glow,
+    experienceTags: [],
+    createdAt: new Date().toISOString()
+  };
+
+  child.weeklyLogs.push(log);
+  family.children[currentChildIndex] = child;
+  saveData('family', family);
+
+  renderDashboard();
+  showScreen('screen-dashboard');
+});
+
+// =====================
+// EXPERIENCE TAGS
+// =====================
+document.querySelectorAll('.exp-tag').forEach(tag => {
+  tag.addEventListener('click', () => {
+    tag.classList.toggle('selected');
+    const value = tag.dataset.tag;
+    if (tag.classList.contains('selected')) {
+      selectedExperienceTags.push(value);
+    } else {
+      selectedExperienceTags = selectedExperienceTags.filter(t => t !== value);
+    }
+  });
+});
+
+document.getElementById('btn-adventure-tags-continue').addEventListener('click', () => {
+  if (selectedExperienceTags.length === 0) {
+    alert('Please select at least one experience type.');
+    return;
+  }
+
+  const gem = getCurrentMonthGem();
+  document.getElementById('adventure-gem-notice-text').textContent =
+    'Logging this adventure keeps your ' + gem.name + ' streak alive. Real learning happens everywhere.';
+
+  document.getElementById('adventure-glow-input').value = '';
+  showScreen('screen-adventure-glow');
+});
+
+// =====================
+// SAVE ADVENTURE WEEK
+// =====================
+document.getElementById('btn-save-adventure-week').addEventListener('click', () => {
+  const glow = document.getElementById('adventure-glow-input').value.trim();
+
+  if (!glow) {
+    alert('Please write a sentence about your adventure before saving.');
+    return;
+  }
+
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+
+  const log = {
+    id: Date.now(),
+    weekNumber: currentWeekNumber,
+    startDate: currentWeekStartDate.toISOString(),
+    logType: 'adventure',
+    subjectEntries: [],
+    glow,
+    experienceTags: selectedExperienceTags,
+    createdAt: new Date().toISOString()
+  };
+
+  child.weeklyLogs.push(log);
+  family.children[currentChildIndex] = child;
+  saveData('family', family);
+
+  renderDashboard();
+  showScreen('screen-dashboard');
+});
