@@ -221,12 +221,7 @@ function renderSubjectList(child) {
   });
 }
 
-// =====================
-// ADD SUBJECT BUTTON
-// =====================
-document.getElementById('btn-add-subject').addEventListener('click', () => {
-  alert('Subject setup coming soon!');
-});
+
 
 // =====================
 // INIT
