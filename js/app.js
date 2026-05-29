@@ -18,6 +18,60 @@ function loadData(key) {
 }
 
 // =====================
+// SCHOOL YEAR HELPERS
+// =====================
+function generateYearLabel(schoolYearStart) {
+  const now = new Date();
+  const monthNames = ['january','february','march','april','may','june',
+    'july','august','september','october','november','december'];
+  const startMonthIndex = monthNames.indexOf(schoolYearStart || 'august');
+  let startYear = now.getFullYear();
+  if (now.getMonth() < startMonthIndex) {
+    startYear = now.getFullYear() - 1;
+  }
+  return startYear + '-' + (startYear + 1);
+}
+
+function createSchoolYear(label, schoolYearStart) {
+  const monthNames = ['january','february','march','april','may','june',
+    'july','august','september','october','november','december'];
+  const startMonthIndex = monthNames.indexOf(schoolYearStart || 'august');
+  const parts = label.split('-');
+  const startYear = parseInt(parts[0]);
+  return {
+    id: Date.now(),
+    label,
+    startDate: new Date(startYear, startMonthIndex, 1).toISOString(),
+    endDate: new Date(startYear + 1, startMonthIndex, 0).toISOString(),
+    subjects: [],
+    weeklyLogs: [],
+    quarterSettings: {
+      q1: { start: '', end: '' },
+      q2: { start: '', end: '' },
+      q3: { start: '', end: '' },
+      q4: { start: '', end: '' }
+    },
+    isActive: true,
+    createdAt: new Date().toISOString()
+  };
+}
+
+function getActiveYear(child) {
+  if (!child.schoolYears) return null;
+  return child.schoolYears.find(y => y.isActive) || child.schoolYears[child.schoolYears.length - 1];
+}
+
+function getSubjects(child) {
+  const year = getActiveYear(child);
+  return year ? year.subjects : [];
+}
+
+function getLogs(child) {
+  const year = getActiveYear(child);
+  return year ? year.weeklyLogs : [];
+}
+
+// =====================
 // DATA CONSTRUCTORS
 // =====================
 function createFamily(officialName, nickname, schoolYearStart) {
@@ -31,14 +85,15 @@ function createFamily(officialName, nickname, schoolYearStart) {
   };
 }
 
-function createChild(name, grade, avatar) {
+function createChild(name, grade, avatar, schoolYearStart) {
+  const yearLabel = generateYearLabel(schoolYearStart);
+  const schoolYear = createSchoolYear(yearLabel, schoolYearStart);
   return {
     id: Date.now(),
     name,
     grade,
     avatar,
-    subjects: [],
-    weeklyLogs: [],
+    schoolYears: [schoolYear],
     createdAt: new Date().toISOString()
   };
 }
@@ -67,9 +122,7 @@ document.getElementById('btn-onboarding-continue').addEventListener('click', () 
 
   const family = createFamily(officialName, nickname, schoolYearStart);
   saveData('family', family);
-
   document.getElementById('display-nickname').textContent = '✦ ' + nickname;
-
   showScreen('screen-add-child');
 });
 
@@ -101,21 +154,12 @@ document.querySelectorAll('.avatar-opt').forEach(opt => {
 document.getElementById('btn-add-child').addEventListener('click', () => {
   const name = document.getElementById('child-name').value.trim();
 
-  if (!name) {
-    alert('Please enter your child\'s name.');
-    return;
-  }
-  if (!selectedGrade) {
-    alert('Please select a grade level.');
-    return;
-  }
-  if (!selectedAvatar) {
-    alert('Please pick an avatar.');
-    return;
-  }
+  if (!name) { alert('Please enter your child\'s name.'); return; }
+  if (!selectedGrade) { alert('Please select a grade level.'); return; }
+  if (!selectedAvatar) { alert('Please pick an avatar.'); return; }
 
   const family = loadData('family');
-  const child = createChild(name, selectedGrade, selectedAvatar);
+  const child = createChild(name, selectedGrade, selectedAvatar, family.schoolYearStart);
   family.children.push(child);
   saveData('family', family);
 
@@ -123,32 +167,28 @@ document.getElementById('btn-add-child').addEventListener('click', () => {
   renderDashboard();
   showScreen('screen-dashboard');
 });
+
 // =====================
 // STREAK CALCULATION
 // =====================
 function calculateStreak(child) {
-  if (!child.weeklyLogs || child.weeklyLogs.length === 0) return 0;
+  const logs = getLogs(child);
+  if (!logs || logs.length === 0) return 0;
 
-  // Sort logs by week number descending
-  const logs = [...child.weeklyLogs].sort((a, b) => b.weekNumber - a.weekNumber);
-
+  const sorted = [...logs].sort((a, b) => b.weekNumber - a.weekNumber);
   const family = loadData('family');
   const currentWeek = getWeekNumber(family);
 
   let streak = 0;
   let expectedWeek = currentWeek;
-
-  // Allow one grace week gap
   let graceUsed = false;
 
-  for (let i = 0; i < logs.length; i++) {
-    const log = logs[i];
-
+  for (let i = 0; i < sorted.length; i++) {
+    const log = sorted[i];
     if (log.weekNumber === expectedWeek) {
       streak++;
       expectedWeek--;
     } else if (!graceUsed && log.weekNumber === expectedWeek - 1) {
-      // Gap of one week — use grace
       graceUsed = true;
       streak++;
       expectedWeek = log.weekNumber - 1;
@@ -156,9 +196,9 @@ function calculateStreak(child) {
       break;
     }
   }
-
   return streak;
 }
+
 // =====================
 // RECENT GLOWS
 // =====================
@@ -166,13 +206,14 @@ function renderRecentGlows(child) {
   const container = document.getElementById('recent-glows-list');
   if (!container) return;
 
-  if (!child.weeklyLogs || child.weeklyLogs.length === 0) {
+  const logs = getLogs(child);
+
+  if (!logs || logs.length === 0) {
     container.innerHTML = `<p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:12px">No glows yet. Log your first week to capture a highlight.</p>`;
     return;
   }
 
-  // Get logs that have a glow entry, sorted most recent first
-  const glowLogs = [...child.weeklyLogs]
+  const glowLogs = [...logs]
     .filter(log => log.glow && log.glow.trim() !== '')
     .sort((a, b) => b.weekNumber - a.weekNumber)
     .slice(0, 3);
@@ -188,7 +229,6 @@ function renderRecentGlows(child) {
     const weekLabel = 'Week ' + log.weekNumber + ' · ' + (isAdventure ? 'Adventure week' : 'School week');
     const date = new Date(log.startDate);
     const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
     return `
       <div class="glow-entry">
         <div class="glow-dot" style="background:${dotColor}"></div>
@@ -200,6 +240,110 @@ function renderRecentGlows(child) {
     `;
   }).join('');
 }
+
+// =====================
+// GEM CALCULATION
+// =====================
+function getEarnedGems(child, family) {
+  const gems = [
+    { month: 0,  name: 'Garnet',     color: '#8B0000', stroke: '#c0392b' },
+    { month: 1,  name: 'Amethyst',   color: '#4a235a', stroke: '#8e44ad' },
+    { month: 2,  name: 'Aquamarine', color: '#1a6b7a', stroke: '#1abc9c' },
+    { month: 3,  name: 'Diamond',    color: '#c8d8e8', stroke: '#e8f4f8' },
+    { month: 4,  name: 'Emerald',    color: '#145a32', stroke: '#27ae60' },
+    { month: 5,  name: 'Pearl',      color: '#c0a080', stroke: '#f0d0a0' },
+    { month: 6,  name: 'Ruby',       color: '#7b0000', stroke: '#e74c3c' },
+    { month: 7,  name: 'Peridot',    color: '#4a6741', stroke: '#82c366' },
+    { month: 8,  name: 'Sapphire',   color: '#1a3a6b', stroke: '#5b8dd9' },
+    { month: 9,  name: 'Opal',       color: '#5c3a1e', stroke: '#c8a060' },
+    { month: 10, name: 'Topaz',      color: '#2d4a6b', stroke: '#6a9fd8' },
+    { month: 11, name: 'Turquoise',  color: '#0d4f4f', stroke: '#38bdf8' }
+  ];
+
+  const monthNames = ['january','february','march','april','may','june',
+    'july','august','september','october','november','december'];
+  const startMonthIndex = monthNames.indexOf(family.schoolYearStart || 'august');
+
+  const orderedGems = [];
+  for (let i = 0; i < 12; i++) {
+    orderedGems.push(gems[(startMonthIndex + i) % 12]);
+  }
+
+  const logs = getLogs(child);
+  const loggedMonths = new Set();
+  if (logs) {
+    logs.forEach(log => {
+      loggedMonths.add(new Date(log.startDate).getMonth());
+    });
+  }
+
+  return orderedGems.map(gem => ({ ...gem, earned: loggedMonths.has(gem.month) }));
+}
+
+function renderGemSVG(gem, size = 24) {
+  const h = Math.round(size * 1.2);
+  if (!gem.earned) {
+    return `<svg width="${size}" height="${h}" viewBox="0 0 30 36" title="${gem.name}">
+      <polygon points="15,2 28,10 28,26 15,34 2,26 2,10"
+        fill="#2a2040" stroke="#3d3060" stroke-width="0.5" opacity="0.4"/>
+    </svg>`;
+  }
+  return `<svg width="${size}" height="${h}" viewBox="0 0 30 36" title="${gem.name}">
+    <polygon points="15,2 28,10 28,26 15,34 2,26 2,10"
+      fill="${gem.color}" stroke="${gem.stroke}" stroke-width="0.5"/>
+    <polygon points="15,2 28,10 15,18" fill="${gem.stroke}" opacity="0.5"/>
+    <polygon points="15,2 2,10 15,18" fill="${gem.color}" opacity="0.8"/>
+    <line x1="12" y1="8" x2="18" y2="14" stroke="white" stroke-width="0.5" opacity="0.4"/>
+  </svg>`;
+}
+
+function getCurrentMonthGem() {
+  const gems = [
+    { name: 'Garnet' },    { name: 'Amethyst' },   { name: 'Aquamarine' },
+    { name: 'Diamond' },   { name: 'Emerald' },     { name: 'Pearl' },
+    { name: 'Ruby' },      { name: 'Peridot' },     { name: 'Sapphire' },
+    { name: 'Opal' },      { name: 'Topaz' },       { name: 'Turquoise' }
+  ];
+  return gems[new Date().getMonth()];
+}
+
+// =====================
+// WEEK HELPERS
+// =====================
+function getWeekStartDate() {
+  const now = new Date();
+  const day = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  return monday;
+}
+
+function getWeekNumber(family) {
+  if (!family.schoolYearStart) return 1;
+  const now = new Date();
+  const monthNames = ['january','february','march','april','may','june',
+    'july','august','september','october','november','december'];
+  const startMonthIndex = monthNames.indexOf(family.schoolYearStart);
+  let startYear = now.getFullYear();
+  if (now.getMonth() < startMonthIndex) startYear = now.getFullYear() - 1;
+  const schoolStart = new Date(startYear, startMonthIndex, 1);
+  if (now < schoolStart) return 1;
+  const diff = now - schoolStart;
+  const weeks = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
+  return Math.min(52, Math.max(1, weeks));
+}
+
+function formatWeekDates(startDate) {
+  const end = new Date(startDate);
+  end.setDate(startDate.getDate() + 6);
+  const opts = { month: 'short', day: 'numeric' };
+  return startDate.toLocaleDateString('en-US', opts) + ' – ' + end.toLocaleDateString('en-US', opts);
+}
+
+function getCurrentWeekDates() {
+  return formatWeekDates(getWeekStartDate());
+}
+
 // =====================
 // DASHBOARD
 // =====================
@@ -208,35 +352,29 @@ function renderDashboard() {
   if (!family) return;
 
   const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
 
   document.getElementById('display-nickname').textContent = '✦ ' + family.nickname;
   document.getElementById('dashboard-avatar').textContent = child.avatar;
   document.getElementById('dashboard-child-name').textContent = child.name;
-  document.getElementById('dashboard-child-grade').textContent = child.grade + ' grade · ' + new Date().getFullYear() + ' school year';
+  document.getElementById('dashboard-child-grade').textContent =
+    child.grade + ' grade · ' + (activeYear ? activeYear.label : '') + ' school year';
+
   const streak = calculateStreak(child);
   document.getElementById('dashboard-streak').innerHTML = streak + ' <span>week streak</span>';
-  // Render gems
+
   const earnedGems = getEarnedGems(child, family);
   const gemContainer = document.getElementById('dashboard-gems');
   if (gemContainer) {
     gemContainer.innerHTML = earnedGems.map(gem => renderGemSVG(gem, 20)).join('');
   }
-  document.getElementById('log-week-label').textContent = 'Week 1 · ' + getCurrentWeekDates();
+
+  document.getElementById('log-week-label').textContent =
+    'Week ' + getWeekNumber(family) + ' · ' + getCurrentWeekDates();
 
   renderChildSwitcher(family);
   renderSubjectList(child);
   renderRecentGlows(child);
-}
-
-function getCurrentWeekDates() {
-  const now = new Date();
-  const day = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const opts = { month: 'short', day: 'numeric' };
-  return monday.toLocaleDateString('en-US', opts) + ' – ' + sunday.toLocaleDateString('en-US', opts);
 }
 
 function renderChildSwitcher(family) {
@@ -276,7 +414,8 @@ function renderSubjectList(child) {
   const list = document.getElementById('subject-list');
   list.innerHTML = '';
 
-  const activeSubjects = child.subjects.filter(s => !s.archived);
+  const subjects = getSubjects(child);
+  const activeSubjects = subjects.filter(s => !s.archived);
 
   if (activeSubjects.length === 0) {
     list.innerHTML = `<p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:12px">No subjects set up yet. Add your first subject to get started.</p>`;
@@ -285,7 +424,6 @@ function renderSubjectList(child) {
       const pct = subject.totalLessons > 0
         ? Math.round((subject.lessonsCompleted / subject.totalLessons) * 100)
         : 0;
-
       const card = document.createElement('div');
       card.className = 'subject-card';
       card.dataset.id = subject.id;
@@ -310,8 +448,6 @@ function renderSubjectList(child) {
   renderArchivedSubjects(child);
 }
 
-
-
 // =====================
 // INIT
 // =====================
@@ -326,6 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showScreen('screen-onboarding');
   }
 });
+
 // =====================
 // ADD SUBJECT SCREEN
 // =====================
@@ -340,12 +477,10 @@ document.getElementById('btn-back-from-subject').addEventListener('click', () =>
   showScreen('screen-dashboard');
 });
 
-// Credit toggle
 document.getElementById('credit-toggle').addEventListener('click', () => {
   creditBearing = !creditBearing;
   const toggle = document.getElementById('credit-toggle');
   const creditOptions = document.getElementById('credit-options');
-
   if (creditBearing) {
     toggle.classList.add('on');
     creditOptions.style.opacity = '1';
@@ -357,7 +492,6 @@ document.getElementById('credit-toggle').addEventListener('click', () => {
   }
 });
 
-// Credit method selection
 document.querySelectorAll('.credit-method').forEach(method => {
   method.addEventListener('click', () => {
     document.querySelectorAll('.credit-method').forEach(m => {
@@ -370,7 +504,6 @@ document.querySelectorAll('.credit-method').forEach(method => {
   });
 });
 
-// Save subject
 document.getElementById('btn-save-subject').addEventListener('click', () => {
   const name = document.getElementById('subject-name').value.trim();
   const type = document.getElementById('subject-type').value;
@@ -378,41 +511,27 @@ document.getElementById('btn-save-subject').addEventListener('click', () => {
   const totalLessons = parseInt(document.getElementById('subject-lessons').value);
   const duration = document.getElementById('subject-duration').value;
 
-  if (!name) {
-    alert('Please enter a subject name.');
-    return;
-  }
-  if (!curriculum) {
-    alert('Please enter a curriculum or resource name.');
-    return;
-  }
-  if (!totalLessons || totalLessons < 1) {
-    alert('Please enter the total number of lessons.');
-    return;
-  }
+  if (!name) { alert('Please enter a subject name.'); return; }
+  if (!curriculum) { alert('Please enter a curriculum or resource name.'); return; }
+  if (!totalLessons || totalLessons < 1) { alert('Please enter the total number of lessons.'); return; }
 
   const family = loadData('family');
   const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
 
   const subject = {
     id: Date.now(),
-    name,
-    type,
-    curriculum,
-    totalLessons,
-    duration,
-    creditBearing,
-    creditMethod: selectedCreditMethod,
-    lessonsCompleted: 0,
-    hoursLogged: 0,
+    name, type, curriculum, totalLessons, duration,
+    creditBearing, creditMethod: selectedCreditMethod,
+    lessonsCompleted: 0, hoursLogged: 0,
+    archived: false,
     createdAt: new Date().toISOString()
   };
 
-  child.subjects.push(subject);
+  activeYear.subjects.push(subject);
   family.children[currentChildIndex] = child;
   saveData('family', family);
 
-  // Reset form for next use
   document.getElementById('subject-name').value = '';
   document.getElementById('subject-curriculum').value = '';
   document.getElementById('subject-lessons').value = '';
@@ -433,6 +552,7 @@ document.getElementById('btn-save-subject').addEventListener('click', () => {
   renderDashboard();
   showScreen('screen-dashboard');
 });
+
 // =====================
 // WEEKLY LOG STATE
 // =====================
@@ -441,135 +561,6 @@ let selectedExperienceTags = [];
 let currentWeekNumber = 1;
 let currentWeekStartDate = null;
 
-// =====================
-// WEEK HELPERS
-// =====================
-function getWeekStartDate() {
-  const now = new Date();
-  const day = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
-  return monday;
-}
-
-function getWeekNumber(family) {
-  if (!family.schoolYearStart) return 1;
-  const now = new Date();
-  const monthNames = ['january','february','march','april','may','june',
-    'july','august','september','october','november','december'];
-  const startMonthIndex = monthNames.indexOf(family.schoolYearStart);
-
-  // Find the most recent school year start date
-  let startYear = now.getFullYear();
-  if (now.getMonth() < startMonthIndex) {
-    startYear = now.getFullYear() - 1;
-  }
-
-  const schoolStart = new Date(startYear, startMonthIndex, 1);
-
-  // If date is before school start, return 1
-  if (now < schoolStart) return 1;
-
-  const diff = now - schoolStart;
-  const weeks = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
-
-  // Cap at 52 weeks
-  return Math.min(52, Math.max(1, weeks));
-}
-
-function formatWeekDates(startDate) {
-  const end = new Date(startDate);
-  end.setDate(startDate.getDate() + 6);
-  const opts = { month: 'short', day: 'numeric' };
-  return startDate.toLocaleDateString('en-US', opts) + ' – ' + end.toLocaleDateString('en-US', opts);
-}
-// =====================
-// GEM CALCULATION
-// =====================
-function getEarnedGems(child, family) {
-  const gems = [
-    { month: 0, name: 'Garnet', color: '#8B0000', stroke: '#c0392b' },
-    { month: 1, name: 'Amethyst', color: '#4a235a', stroke: '#8e44ad' },
-    { month: 2, name: 'Aquamarine', color: '#1a6b7a', stroke: '#1abc9c' },
-    { month: 3, name: 'Diamond', color: '#c8d8e8', stroke: '#e8f4f8' },
-    { month: 4, name: 'Emerald', color: '#145a32', stroke: '#27ae60' },
-    { month: 5, name: 'Pearl', color: '#c0a080', stroke: '#f0d0a0' },
-    { month: 6, name: 'Ruby', color: '#7b0000', stroke: '#e74c3c' },
-    { month: 7, name: 'Peridot', color: '#4a6741', stroke: '#82c366' },
-    { month: 8, name: 'Sapphire', color: '#1a3a6b', stroke: '#5b8dd9' },
-    { month: 9, name: 'Opal', color: '#5c3a1e', stroke: '#c8a060' },
-    { month: 10, name: 'Topaz', color: '#2d4a6b', stroke: '#6a9fd8' },
-    { month: 11, name: 'Turquoise', color: '#0d4f4f', stroke: '#38bdf8' }
-  ];
-
-  // Get school year start month index
-  const monthNames = ['january','february','march','april','may','june',
-    'july','august','september','october','november','december'];
-  const startMonthIndex = monthNames.indexOf(family.schoolYearStart || 'august');
-
-  // Build ordered gem list starting from school year start month
-  const orderedGems = [];
-  for (let i = 0; i < 12; i++) {
-    const monthIndex = (startMonthIndex + i) % 12;
-    orderedGems.push(gems[monthIndex]);
-  }
-
-  // Figure out which months have at least one log
-  const loggedMonths = new Set();
-  if (child.weeklyLogs) {
-    child.weeklyLogs.forEach(log => {
-      const date = new Date(log.startDate);
-      loggedMonths.add(date.getMonth());
-    });
-  }
-
-  // Mark each gem as earned or not
-  return orderedGems.map(gem => ({
-    ...gem,
-    earned: loggedMonths.has(gem.month)
-  }));
-}
-
-function renderGemSVG(gem, size = 24) {
-  const h = Math.round(size * 1.2);
-  if (!gem.earned) {
-    return `<svg width="${size}" height="${h}" viewBox="0 0 30 36" title="${gem.name}">
-      <polygon points="15,2 28,10 28,26 15,34 2,26 2,10"
-        fill="#2a2040" stroke="#3d3060" stroke-width="0.5" opacity="0.4"/>
-    </svg>`;
-  }
-  return `<svg width="${size}" height="${h}" viewBox="0 0 30 36" title="${gem.name}">
-    <polygon points="15,2 28,10 28,26 15,34 2,26 2,10"
-      fill="${gem.color}" stroke="${gem.stroke}" stroke-width="0.5"/>
-    <polygon points="15,2 28,10 15,18"
-      fill="${gem.stroke}" opacity="0.5"/>
-    <polygon points="15,2 2,10 15,18"
-      fill="${gem.color}" opacity="0.8"/>
-    <line x1="12" y1="8" x2="18" y2="14"
-      stroke="white" stroke-width="0.5" opacity="0.4"/>
-  </svg>`;
-}
-function getCurrentMonthGem() {
-  const gems = [
-    { name: 'Garnet', color: '#8B0000' },
-    { name: 'Amethyst', color: '#4a235a' },
-    { name: 'Aquamarine', color: '#1a6b7a' },
-    { name: 'Diamond', color: '#c8d8e8' },
-    { name: 'Emerald', color: '#145a32' },
-    { name: 'Pearl', color: '#c0a080' },
-    { name: 'Ruby', color: '#7b0000' },
-    { name: 'Peridot', color: '#4a6741' },
-    { name: 'Sapphire', color: '#1a3a6b' },
-    { name: 'Opal', color: '#5c3a1e' },
-    { name: 'Topaz', color: '#2d4a6b' },
-    { name: 'Turquoise', color: '#1a3a6b' }
-  ];
-  return gems[new Date().getMonth()];
-}
-
-// =====================
-// LOG THIS WEEK BUTTON
-// =====================
 document.getElementById('btn-log-week').addEventListener('click', () => {
   const family = loadData('family');
   currentWeekStartDate = getWeekStartDate();
@@ -580,17 +571,14 @@ document.getElementById('btn-log-week').addEventListener('click', () => {
 
   const gem = getCurrentMonthGem();
   document.getElementById('week-gem-notice-text').textContent =
-    'Log this week to work toward your ' + gem.name + ' — ' + new Date().toLocaleString('default', { month: 'long' }) + '\'s gem.';
+    'Log this week to work toward your ' + gem.name + ' — ' +
+    new Date().toLocaleString('default', { month: 'long' }) + '\'s gem.';
 
   currentWeekType = null;
   document.querySelectorAll('.week-type-card').forEach(c => c.classList.remove('selected'));
-
   showScreen('screen-week-type');
 });
 
-// =====================
-// WEEK TYPE SELECTION
-// =====================
 document.getElementById('select-school-week').addEventListener('click', () => {
   currentWeekType = 'school';
   document.querySelectorAll('.week-type-card').forEach(c => c.classList.remove('selected'));
@@ -598,12 +586,11 @@ document.getElementById('select-school-week').addEventListener('click', () => {
 
   const family = loadData('family');
   const child = family.children[currentChildIndex];
-  const weekLabel = 'Week ' + currentWeekNumber + ' · ' + formatWeekDates(currentWeekStartDate);
-  document.getElementById('school-log-label').textContent = weekLabel;
+  document.getElementById('school-log-label').textContent =
+    'Week ' + currentWeekNumber + ' · ' + formatWeekDates(currentWeekStartDate);
 
   renderSchoolLogEntries(child);
   document.getElementById('school-glow-input').value = '';
-
   setTimeout(() => showScreen('screen-school-log'), 150);
 });
 
@@ -611,31 +598,27 @@ document.getElementById('select-adventure-week').addEventListener('click', () =>
   currentWeekType = 'adventure';
   document.querySelectorAll('.week-type-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('select-adventure-week').classList.add('selected');
-
   selectedExperienceTags = [];
   document.querySelectorAll('.exp-tag').forEach(t => t.classList.remove('selected'));
-
   setTimeout(() => showScreen('screen-adventure-tags'), 150);
 });
 
-// =====================
-// SCHOOL LOG — RENDER SUBJECTS
-// =====================
 function renderSchoolLogEntries(child) {
   const container = document.getElementById('school-subject-entries');
   container.innerHTML = '';
 
-  if (child.subjects.length === 0) {
+  const subjects = getSubjects(child);
+  const activeSubjects = subjects.filter(s => !s.archived);
+
+  if (activeSubjects.length === 0) {
     container.innerHTML = `<p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:16px">No subjects set up yet. Add subjects from the dashboard first.</p>`;
     return;
   }
 
-  child.subjects.forEach(subject => {
+  activeSubjects.forEach(subject => {
     const card = document.createElement('div');
     card.className = 'subject-log-card';
-
     const tagClass = 'tag-' + subject.type;
-
     card.innerHTML = `
       <div class="subject-log-header" data-id="${subject.id}">
         <div class="subject-log-header-left">
@@ -648,71 +631,53 @@ function renderSchoolLogEntries(child) {
         <div class="subject-log-row">
           <div class="subject-log-field">
             <label>Lessons completed</label>
-            <input type="number" min="0" placeholder="0"
-              id="lessons-${subject.id}" />
+            <input type="number" min="0" placeholder="0" id="lessons-${subject.id}" />
           </div>
           <div class="subject-log-field">
             <label>Hours (optional)</label>
-            <input type="number" min="0" step="0.5" placeholder="0"
-              id="hours-${subject.id}" />
+            <input type="number" min="0" step="0.5" placeholder="0" id="hours-${subject.id}" />
           </div>
         </div>
         <div class="subject-log-wide">
           <label>Notes</label>
-          <input type="text" placeholder="What did you cover?"
-            id="notes-${subject.id}" />
+          <input type="text" placeholder="What did you cover?" id="notes-${subject.id}" />
         </div>
       </div>
       <div class="subject-collapsed-hint" id="hint-${subject.id}">Tap to log this week's work</div>
     `;
-
     container.appendChild(card);
 
-    // Toggle open/close
     card.querySelector('.subject-log-header').addEventListener('click', () => {
       const body = document.getElementById('log-body-' + subject.id);
       const hint = document.getElementById('hint-' + subject.id);
-      const icon = card.querySelector('.ti-chevron-down, .ti-chevron-up');
+      const icon = card.querySelector('[class*="ti-chevron"]');
       const isOpen = body.classList.contains('open');
-
       body.classList.toggle('open');
       hint.style.display = isOpen ? 'block' : 'none';
-      icon.className = isOpen ? 'ti ti-chevron-down' : 'ti ti-chevron-up';
-      icon.style.color = 'var(--color-text-secondary)';
-      icon.style.fontSize = '16px';
+      if (icon) {
+        icon.className = isOpen ? 'ti ti-chevron-down' : 'ti ti-chevron-up';
+        icon.style.color = 'var(--color-text-secondary)';
+        icon.style.fontSize = '16px';
+      }
     });
   });
 }
 
-// =====================
-// BACK BUTTONS — LOG FLOW
-// =====================
-document.getElementById('btn-back-from-week-type').addEventListener('click', () => {
-  showScreen('screen-dashboard');
-});
+document.getElementById('btn-back-from-week-type').addEventListener('click', () => showScreen('screen-dashboard'));
+document.getElementById('btn-back-from-school-log').addEventListener('click', () => showScreen('screen-week-type'));
+document.getElementById('btn-back-from-adventure-tags').addEventListener('click', () => showScreen('screen-week-type'));
+document.getElementById('btn-back-from-adventure-glow').addEventListener('click', () => showScreen('screen-adventure-tags'));
 
-document.getElementById('btn-back-from-school-log').addEventListener('click', () => {
-  showScreen('screen-week-type');
-});
-
-document.getElementById('btn-back-from-adventure-tags').addEventListener('click', () => {
-  showScreen('screen-week-type');
-});
-
-document.getElementById('btn-back-from-adventure-glow').addEventListener('click', () => {
-  showScreen('screen-adventure-tags');
-});
-
-// =====================
-// SAVE SCHOOL WEEK
-// =====================
 document.getElementById('btn-save-school-week').addEventListener('click', () => {
   const family = loadData('family');
   const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
   const glow = document.getElementById('school-glow-input').value.trim();
 
+  const subjects = getSubjects(child);
   const subjectEntries = [];
-  child.subjects.forEach(subject => {
+
+  subjects.forEach(subject => {
     const lessonsEl = document.getElementById('lessons-' + subject.id);
     const hoursEl = document.getElementById('hours-' + subject.id);
     const notesEl = document.getElementById('notes-' + subject.id);
@@ -722,20 +687,16 @@ document.getElementById('btn-save-school-week').addEventListener('click', () => 
     const notes = notesEl?.value.trim() || '';
 
     if (lessons > 0 || hours > 0 || notes) {
-      subjectEntries.push({
-        subjectId: subject.id,
-        lessonsCompleted: lessons,
-        hoursLogged: hours,
-        notes
-      });
-
-      // Update subject totals
-      subject.lessonsCompleted += lessons;
-      subject.hoursLogged += hours;
+      subjectEntries.push({ subjectId: subject.id, lessonsCompleted: lessons, hoursLogged: hours, notes });
+      const subjectIndex = activeYear.subjects.findIndex(s => s.id === subject.id);
+      if (subjectIndex !== -1) {
+        activeYear.subjects[subjectIndex].lessonsCompleted += lessons;
+        activeYear.subjects[subjectIndex].hoursLogged += hours;
+      }
     }
   });
 
-  const log = {
+  activeYear.weeklyLogs.push({
     id: Date.now(),
     weekNumber: currentWeekNumber,
     startDate: currentWeekStartDate.toISOString(),
@@ -744,19 +705,14 @@ document.getElementById('btn-save-school-week').addEventListener('click', () => 
     glow,
     experienceTags: [],
     createdAt: new Date().toISOString()
-  };
+  });
 
-  child.weeklyLogs.push(log);
   family.children[currentChildIndex] = child;
   saveData('family', family);
-
   renderDashboard();
   showScreen('screen-dashboard');
 });
 
-// =====================
-// EXPERIENCE TAGS
-// =====================
 document.querySelectorAll('.exp-tag').forEach(tag => {
   tag.addEventListener('click', () => {
     tag.classList.toggle('selected');
@@ -774,30 +730,22 @@ document.getElementById('btn-adventure-tags-continue').addEventListener('click',
     alert('Please select at least one experience type.');
     return;
   }
-
   const gem = getCurrentMonthGem();
   document.getElementById('adventure-gem-notice-text').textContent =
     'Logging this adventure keeps your ' + gem.name + ' streak alive. Real learning happens everywhere.';
-
   document.getElementById('adventure-glow-input').value = '';
   showScreen('screen-adventure-glow');
 });
 
-// =====================
-// SAVE ADVENTURE WEEK
-// =====================
 document.getElementById('btn-save-adventure-week').addEventListener('click', () => {
   const glow = document.getElementById('adventure-glow-input').value.trim();
-
-  if (!glow) {
-    alert('Please write a sentence about your adventure before saving.');
-    return;
-  }
+  if (!glow) { alert('Please write a sentence about your adventure before saving.'); return; }
 
   const family = loadData('family');
   const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
 
-  const log = {
+  activeYear.weeklyLogs.push({
     id: Date.now(),
     weekNumber: currentWeekNumber,
     startDate: currentWeekStartDate.toISOString(),
@@ -806,15 +754,14 @@ document.getElementById('btn-save-adventure-week').addEventListener('click', () 
     glow,
     experienceTags: selectedExperienceTags,
     createdAt: new Date().toISOString()
-  };
+  });
 
-  child.weeklyLogs.push(log);
   family.children[currentChildIndex] = child;
   saveData('family', family);
-
   renderDashboard();
   showScreen('screen-dashboard');
 });
+
 // =====================
 // EDIT SUBJECT STATE
 // =====================
@@ -822,27 +769,23 @@ let editingSubjectId = null;
 let editCreditBearing = false;
 let editCreditMethod = 'lessons';
 
-// =====================
-// OPEN EDIT SCREEN
-// =====================
 function openEditSubject(subjectId) {
   const family = loadData('family');
   const child = family.children[currentChildIndex];
-  const subject = child.subjects.find(s => s.id === subjectId);
+  const subjects = getSubjects(child);
+  const subject = subjects.find(s => s.id === subjectId);
   if (!subject) return;
 
   editingSubjectId = subjectId;
   editCreditBearing = subject.creditBearing;
   editCreditMethod = subject.creditMethod || 'lessons';
 
-  // Pre-fill form
   document.getElementById('edit-subject-name').value = subject.name;
   document.getElementById('edit-subject-type').value = subject.type;
   document.getElementById('edit-subject-curriculum').value = subject.curriculum;
   document.getElementById('edit-subject-lessons').value = subject.totalLessons;
   document.getElementById('edit-subject-duration').value = subject.duration;
 
-  // Credit toggle
   const toggle = document.getElementById('edit-credit-toggle');
   const creditOptions = document.getElementById('edit-credit-options');
   if (subject.creditBearing) {
@@ -855,7 +798,6 @@ function openEditSubject(subjectId) {
     creditOptions.style.pointerEvents = 'none';
   }
 
-  // Credit method
   document.querySelectorAll('#edit-credit-options .credit-method').forEach(m => {
     m.classList.remove('selected');
     m.querySelector('.radio').classList.remove('selected');
@@ -871,9 +813,6 @@ function openEditSubject(subjectId) {
   showScreen('screen-edit-subject');
 }
 
-// =====================
-// SUBJECT CARD CLICK
-// =====================
 function attachSubjectCardListeners() {
   document.querySelectorAll('.subject-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -883,16 +822,8 @@ function attachSubjectCardListeners() {
   });
 }
 
-// =====================
-// BACK FROM EDIT
-// =====================
-document.getElementById('btn-back-from-edit-subject').addEventListener('click', () => {
-  showScreen('screen-dashboard');
-});
+document.getElementById('btn-back-from-edit-subject').addEventListener('click', () => showScreen('screen-dashboard'));
 
-// =====================
-// EDIT CREDIT TOGGLE
-// =====================
 document.getElementById('edit-credit-toggle').addEventListener('click', () => {
   editCreditBearing = !editCreditBearing;
   const toggle = document.getElementById('edit-credit-toggle');
@@ -908,9 +839,6 @@ document.getElementById('edit-credit-toggle').addEventListener('click', () => {
   }
 });
 
-// =====================
-// EDIT CREDIT METHOD
-// =====================
 document.querySelectorAll('#edit-credit-options .credit-method').forEach(method => {
   method.addEventListener('click', () => {
     document.querySelectorAll('#edit-credit-options .credit-method').forEach(m => {
@@ -923,9 +851,6 @@ document.querySelectorAll('#edit-credit-options .credit-method').forEach(method 
   });
 });
 
-// =====================
-// SAVE EDIT
-// =====================
 document.getElementById('btn-save-edit-subject').addEventListener('click', () => {
   const name = document.getElementById('edit-subject-name').value.trim();
   const type = document.getElementById('edit-subject-type').value;
@@ -939,16 +864,14 @@ document.getElementById('btn-save-edit-subject').addEventListener('click', () =>
 
   const family = loadData('family');
   const child = family.children[currentChildIndex];
-  const subjectIndex = child.subjects.findIndex(s => s.id === editingSubjectId);
+  const activeYear = getActiveYear(child);
+  const subjectIndex = activeYear.subjects.findIndex(s => s.id === editingSubjectId);
   if (subjectIndex === -1) return;
 
-  // Preserve completed lessons and hours
-  const existing = child.subjects[subjectIndex];
-  child.subjects[subjectIndex] = {
+  const existing = activeYear.subjects[subjectIndex];
+  activeYear.subjects[subjectIndex] = {
     ...existing,
-    name,
-    type,
-    curriculum,
+    name, type, curriculum,
     totalLessons: Math.max(totalLessons, existing.lessonsCompleted),
     duration,
     creditBearing: editCreditBearing,
@@ -957,35 +880,29 @@ document.getElementById('btn-save-edit-subject').addEventListener('click', () =>
 
   family.children[currentChildIndex] = child;
   saveData('family', family);
-
   renderDashboard();
   showScreen('screen-dashboard');
 });
 
-// =====================
-// ARCHIVE SUBJECT
-// =====================
 document.getElementById('btn-archive-subject').addEventListener('click', () => {
   if (!confirm('Archive this subject? It will be removed from your dashboard and log screens but preserved in your year history.')) return;
 
   const family = loadData('family');
   const child = family.children[currentChildIndex];
-  const subjectIndex = child.subjects.findIndex(s => s.id === editingSubjectId);
+  const activeYear = getActiveYear(child);
+  const subjectIndex = activeYear.subjects.findIndex(s => s.id === editingSubjectId);
   if (subjectIndex === -1) return;
 
-  child.subjects[subjectIndex].archived = true;
+  activeYear.subjects[subjectIndex].archived = true;
   family.children[currentChildIndex] = child;
   saveData('family', family);
-
   renderDashboard();
   showScreen('screen-dashboard');
 });
 
-// =====================
-// RENDER ARCHIVED SUBJECTS
-// =====================
 function renderArchivedSubjects(child) {
-  const archived = child.subjects.filter(s => s.archived);
+  const subjects = getSubjects(child);
+  const archived = subjects.filter(s => s.archived);
   const container = document.getElementById('archived-subjects-container');
   if (!container) return;
 
@@ -1016,16 +933,16 @@ function renderArchivedSubjects(child) {
     `;
   }).join('');
 
-  // Unarchive listeners
   list.querySelectorAll('.btn-unarchive').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const id = parseInt(btn.dataset.id);
       const family = loadData('family');
       const child = family.children[currentChildIndex];
-      const subjectIndex = child.subjects.findIndex(s => s.id === id);
+      const activeYear = getActiveYear(child);
+      const subjectIndex = activeYear.subjects.findIndex(s => s.id === id);
       if (subjectIndex !== -1) {
-        child.subjects[subjectIndex].archived = false;
+        activeYear.subjects[subjectIndex].archived = false;
         family.children[currentChildIndex] = child;
         saveData('family', family);
         renderDashboard();
@@ -1033,9 +950,7 @@ function renderArchivedSubjects(child) {
     });
   });
 }
-// =====================
-// ARCHIVED TOGGLE
-// =====================
+
 document.addEventListener('click', (e) => {
   const toggleBtn = e.target.closest('#archived-toggle-btn');
   if (toggleBtn) {
@@ -1043,7 +958,6 @@ document.addEventListener('click', (e) => {
     const list = document.getElementById('archived-subjects-list');
     if (list) {
       list.classList.toggle('open');
-      // Re-render archived list on open to make sure it's current
       if (list.classList.contains('open')) {
         const family = loadData('family');
         const child = family.children[currentChildIndex];
