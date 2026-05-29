@@ -451,8 +451,44 @@ function renderSubjectList(child) {
 // =====================
 // INIT
 // =====================
+// =====================
+// MIGRATION
+// =====================
+function migrateData(family) {
+  if (!family) return family;
+  let changed = false;
+
+  family.children = family.children.map(child => {
+    // If child already has schoolYears, skip
+    if (child.schoolYears) return child;
+
+    // Migrate old structure to new
+    changed = true;
+    const yearLabel = generateYearLabel(family.schoolYearStart);
+    const schoolYear = createSchoolYear(yearLabel, family.schoolYearStart);
+
+    // Move existing subjects and logs into the school year
+    schoolYear.subjects = child.subjects || [];
+    schoolYear.weeklyLogs = child.weeklyLogs || [];
+
+    const { subjects, weeklyLogs, ...childWithoutOldData } = child;
+    return {
+      ...childWithoutOldData,
+      schoolYears: [schoolYear]
+    };
+  });
+
+  if (changed) saveData('family', family);
+  return family;
+}
+
+// =====================
+// INIT
+// =====================
 document.addEventListener('DOMContentLoaded', () => {
-  const family = loadData('family');
+  let family = loadData('family');
+  family = migrateData(family);
+
   if (family && family.children.length > 0) {
     renderDashboard();
     showScreen('screen-dashboard');
@@ -462,7 +498,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showScreen('screen-onboarding');
   }
 });
-
 // =====================
 // ADD SUBJECT SCREEN
 // =====================
