@@ -1727,11 +1727,15 @@ body {
   }
 
   .screen {
-    display: block !important;
+    display: none !important;
   }
 
   #screen-report {
     display: block !important;
+  }
+
+  .report-toolbar {
+    display: none !important;
   }
 
   .report-doc {
