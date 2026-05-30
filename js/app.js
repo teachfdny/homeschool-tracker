@@ -774,7 +774,7 @@ document.getElementById('btn-adventure-tags-continue').addEventListener('click',
 });
 
 document.getElementById('btn-save-adventure-week').addEventListener('click', () => {
-  const glow = document.getElementById('adventure-glow-input').value.trim();
+  const glow = document.getElementById('adventure-glow-input-final').value.trim();
   if (!glow) { alert('Please write a sentence about your adventure before saving.'); return; }
 
   const family = loadData('family');
@@ -787,6 +787,7 @@ document.getElementById('btn-save-adventure-week').addEventListener('click', () 
     startDate: currentWeekStartDate.toISOString(),
     logType: 'adventure',
     subjectEntries: [],
+    books: [...adventureBooks],
     glow,
     experienceTags: selectedExperienceTags,
     createdAt: new Date().toISOString()
@@ -794,6 +795,7 @@ document.getElementById('btn-save-adventure-week').addEventListener('click', () 
 
   family.children[currentChildIndex] = child;
   saveData('family', family);
+  resetBookState();
   renderDashboard();
   showScreen('screen-dashboard');
 });
