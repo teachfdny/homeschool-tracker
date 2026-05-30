@@ -1121,4 +1121,5 @@ document.getElementById('btn-save-quarters').addEventListener('click', () => {
   saveData('family', family);
 
   alert('Quarter dates saved.');
-  showScre
+  showScreen('screen-dashboard');
+});
