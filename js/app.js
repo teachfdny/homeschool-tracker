@@ -1123,3 +1123,131 @@ document.getElementById('btn-save-quarters').addEventListener('click', () => {
   alert('Quarter dates saved.');
   showScreen('screen-dashboard');
 });
+// =====================
+// BOOK LOGGING STATE
+// =====================
+let schoolBooks = [];
+let adventureBooks = [];
+let schoolSelectedCat = 'readaloud';
+let adventureSelectedCat = 'readaloud';
+
+// =====================
+// BOOK CATEGORY BUTTONS
+// =====================
+function setupCategoryButtons(prefix, getCat, setCat) {
+  ['readaloud', 'personal', 'assigned'].forEach(cat => {
+    const btn = document.getElementById(prefix + '-cat-' + cat);
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#' + prefix + '-cat-readaloud, #' + prefix + '-cat-personal, #' + prefix + '-cat-assigned')
+        .forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      setCat(cat);
+    });
+  });
+}
+
+setupCategoryButtons('school',
+  () => schoolSelectedCat,
+  (cat) => { schoolSelectedCat = cat; }
+);
+
+setupCategoryButtons('adventure',
+  () => adventureSelectedCat,
+  (cat) => { adventureSelectedCat = cat; }
+);
+
+// =====================
+// RENDER BOOK LIST
+// =====================
+function renderBookList(books, listId, removeCallback) {
+  const list = document.getElementById(listId);
+  if (!list) return;
+
+  if (books.length === 0) {
+    list.innerHTML = '';
+    return;
+  }
+
+  const catLabels = {
+    readaloud: 'Read aloud',
+    personal: 'Personal',
+    assigned: 'Assigned'
+  };
+
+  list.innerHTML = books.map((book, index) => `
+    <div class="book-list-item">
+      <div class="book-item-left">
+        <span class="book-item-cat cat-${book.category}">${catLabels[book.category]}</span>
+        <span class="book-item-title">${book.title}</span>
+      </div>
+      <button class="book-remove" data-index="${index}">×</button>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.book-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const index = parseInt(btn.dataset.index);
+      removeCallback(index);
+    });
+  });
+}
+
+// =====================
+// SCHOOL WEEK BOOKS
+// =====================
+document.getElementById('school-book-add').addEventListener('click', () => {
+  const input = document.getElementById('school-book-input');
+  const title = input.value.trim();
+  if (!title) { alert('Please enter a book title.'); return; }
+
+  schoolBooks.push({ title, category: schoolSelectedCat, addedAt: new Date().toISOString() });
+  input.value = '';
+  renderBookList(schoolBooks, 'school-book-list', (index) => {
+    schoolBooks.splice(index, 1);
+    renderBookList(schoolBooks, 'school-book-list', arguments.callee);
+  });
+});
+
+// =====================
+// ADVENTURE WEEK BOOKS
+// =====================
+document.getElementById('adventure-book-add').addEventListener('click', () => {
+  const input = document.getElementById('adventure-book-input');
+  const title = input.value.trim();
+  if (!title) { alert('Please enter a book title.'); return; }
+
+  adventureBooks.push({ title, category: adventureSelectedCat, addedAt: new Date().toISOString() });
+  input.value = '';
+  renderBookList(adventureBooks, 'adventure-book-list', (index) => {
+    adventureBooks.splice(index, 1);
+    renderBookList(adventureBooks, 'adventure-book-list', arguments.callee);
+  });
+});
+
+// =====================
+// RESET BOOK STATE
+// =====================
+function resetBookState() {
+  schoolBooks = [];
+  adventureBooks = [];
+  schoolSelectedCat = 'readaloud';
+  adventureSelectedCat = 'readaloud';
+
+  const schoolInput = document.getElementById('school-book-input');
+  if (schoolInput) schoolInput.value = '';
+  const adventureInput = document.getElementById('adventure-book-input');
+  if (adventureInput) adventureInput.value = '';
+
+  const schoolList = document.getElementById('school-book-list');
+  if (schoolList) schoolList.innerHTML = '';
+  const adventureList = document.getElementById('adventure-book-list');
+  if (adventureList) adventureList.innerHTML = '';
+
+  ['school', 'adventure'].forEach(prefix => {
+    document.querySelectorAll(`#${prefix}-cat-readaloud, #${prefix}-cat-personal, #${prefix}-cat-assigned`)
+      .forEach(b => b.classList.remove('sel'));
+    const defaultBtn = document.getElementById(`${prefix}-cat-readaloud`);
+    if (defaultBtn) defaultBtn.classList.add('sel');
+  });
+}
