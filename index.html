@@ -158,6 +158,113 @@
     <div id="recent-glows-list"></div>
     <div style="height:24px"></div>
   </div>
+
+  <!-- SETTINGS SCREEN -->
+  <div id="screen-settings" class="screen">
+    <div class="screen-header">
+      <button class="btn-back" id="btn-back-from-settings">
+        <i class="ti ti-arrow-left"></i> Back
+      </button>
+      <h1>Settings</h1>
+    </div>
+
+    <div class="section-label">School info</div>
+    <div class="info-card">
+      <div class="info-row">
+        <div class="info-label">Official name</div>
+        <div class="info-value" id="settings-official-name"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Nickname</div>
+        <div class="info-value" id="settings-nickname"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">School year starts</div>
+        <div class="info-value" id="settings-year-start"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">Quarterly reporting</div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">I need quarterly reports</div>
+        <div class="toggle-sub">Set date ranges for Q1–Q4</div>
+      </div>
+      <div class="toggle-switch" id="quarterly-toggle">
+        <div class="toggle-knob"></div>
+      </div>
+    </div>
+
+    <div id="quarter-date-fields" style="display:none">
+
+      <div class="info-box" style="margin-bottom:14px">
+        <i class="ti ti-info-circle"></i>
+        <span>Set your quarter dates once. They'll be used when generating reports for this school year.</span>
+      </div>
+
+      <div class="quarter-block">
+        <div class="quarter-label">Q1</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="q1-start">Start date</label>
+            <input type="date" id="q1-start" />
+          </div>
+          <div class="form-group">
+            <label for="q1-end">End date</label>
+            <input type="date" id="q1-end" />
+          </div>
+        </div>
+      </div>
+
+      <div class="quarter-block">
+        <div class="quarter-label">Q2</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="q2-start">Start date</label>
+            <input type="date" id="q2-start" />
+          </div>
+          <div class="form-group">
+            <label for="q2-end">End date</label>
+            <input type="date" id="q2-end" />
+          </div>
+        </div>
+      </div>
+
+      <div class="quarter-block">
+        <div class="quarter-label">Q3</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="q3-start">Start date</label>
+            <input type="date" id="q3-start" />
+          </div>
+          <div class="form-group">
+            <label for="q3-end">End date</label>
+            <input type="date" id="q3-end" />
+          </div>
+        </div>
+      </div>
+
+      <div class="quarter-block">
+        <div class="quarter-label">Q4</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="q4-start">Start date</label>
+            <input type="date" id="q4-start" />
+          </div>
+          <div class="form-group">
+            <label for="q4-end">End date</label>
+            <input type="date" id="q4-end" />
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="btn-save-quarters">Save quarter dates</button>
+
+    </div>
+  </div>
+  
   <!-- EDIT SUBJECT SCREEN -->
   <div id="screen-edit-subject" class="screen">
     <div class="screen-header">
