@@ -1261,3 +1261,367 @@ function resetBookState() {
     if (defaultBtn) defaultBtn.classList.add('sel');
   });
 }
+// =====================
+// REPORT STATE
+// =====================
+let reportIncludeWeekly = false;
+let reportIncludeBooks = true;
+let reportIncludeHighlights = true;
+
+// =====================
+// REPORT OPTION TOGGLES
+// =====================
+function setupReportToggle(id, getVal, setVal) {
+  const toggle = document.getElementById(id);
+  if (!toggle) return;
+  toggle.addEventListener('click', () => {
+    setVal(!getVal());
+    if (getVal()) {
+      toggle.classList.add('on');
+    } else {
+      toggle.classList.remove('on');
+    }
+  });
+}
+
+setupReportToggle('toggle-weekly-log',
+  () => reportIncludeWeekly,
+  (v) => { reportIncludeWeekly = v; }
+);
+
+setupReportToggle('toggle-books',
+  () => reportIncludeBooks,
+  (v) => { reportIncludeBooks = v; }
+);
+
+setupReportToggle('toggle-highlights',
+  () => reportIncludeHighlights,
+  (v) => { reportIncludeHighlights = v; }
+);
+
+// =====================
+// REPORT RANGE SELECTOR
+// =====================
+document.getElementById('report-range').addEventListener('change', () => {
+  const val = document.getElementById('report-range').value;
+  const customFields = document.getElementById('custom-range-fields');
+  customFields.style.display = val === 'custom' ? 'block' : 'none';
+});
+
+// =====================
+// GET REPORT DATE RANGE
+// =====================
+function getReportDateRange() {
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+  const rangeVal = document.getElementById('report-range').value;
+
+  if (rangeVal === 'custom') {
+    const start = document.getElementById('report-start').value;
+    const end = document.getElementById('report-end').value;
+    if (!start || !end) {
+      alert('Please select a start and end date for your custom range.');
+      return null;
+    }
+    return { start: new Date(start + 'T00:00:00'), end: new Date(end + 'T23:59:59'), label: 'Custom range' };
+  }
+
+  if (rangeVal === 'fullyear') {
+    const start = new Date(activeYear.startDate);
+    const end = new Date();
+    return { start, end, label: 'Full year to date' };
+  }
+
+  // Quarter ranges
+  const quarters = activeYear?.quarterSettings;
+  if (!quarters) {
+    alert('Please set up your quarter dates in settings first.');
+    return null;
+  }
+
+  const q = quarters[rangeVal];
+  if (!q || !q.start || !q.end) {
+    alert('Please set up your ' + rangeVal.toUpperCase() + ' dates in the quarterly reporting section above.');
+    return null;
+  }
+
+  const quarterLabels = { q1: 'Q1', q2: 'Q2', q3: 'Q3', q4: 'Q4' };
+  return {
+    start: new Date(q.start + 'T00:00:00'),
+    end: new Date(q.end + 'T23:59:59'),
+    label: quarterLabels[rangeVal]
+  };
+}
+
+// =====================
+// FILTER LOGS BY DATE
+// =====================
+function filterLogsByDateRange(logs, start, end) {
+  return logs.filter(log => {
+    const logDate = new Date(log.startDate);
+    return logDate >= start && logDate <= end;
+  });
+}
+
+// =====================
+// FORMAT DATE
+// =====================
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+function formatDateShort(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// =====================
+// GENERATE REPORT
+// =====================
+document.getElementById('btn-generate-report').addEventListener('click', () => {
+  const range = getReportDateRange();
+  if (!range) return;
+
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+  const logs = getLogs(child);
+  const filteredLogs = filterLogsByDateRange(logs, range.start, range.end);
+  const subjects = getSubjects(child);
+
+  const schoolWeeks = filteredLogs.filter(l => l.logType === 'school');
+  const adventureWeeks = filteredLogs.filter(l => l.logType === 'adventure');
+
+  // Book totals
+  const allBooks = filteredLogs.flatMap(l => l.books || []);
+  const readAlouds = allBooks.filter(b => b.category === 'readaloud');
+  const personalReads = allBooks.filter(b => b.category === 'personal');
+  const assignedReads = allBooks.filter(b => b.category === 'assigned');
+
+  // All glows
+  const allGlows = filteredLogs.filter(l => l.glow && l.glow.trim() !== '');
+
+  // Build report HTML
+  let html = `<div class="report-doc">`;
+
+  // Header
+  html += `
+    <div class="report-header">
+      <div>
+        <div class="report-school-name">${family.officialName}</div>
+        <div class="report-meta">${child.name} · ${child.grade} grade · ${activeYear.label} school year</div>
+        <div class="report-meta">Report period: ${formatDate(range.start)} – ${formatDate(range.end)} (${range.label})</div>
+        <div class="report-disclaimer">This is a personal learning record prepared by ${family.nickname}. It is not an official government document.</div>
+      </div>
+      <div class="report-generated">Generated ${formatDate(new Date())}</div>
+    </div>
+  `;
+
+  // Summary
+  html += `
+    <div class="report-section">
+      <div class="report-section-title">Summary</div>
+      <div class="report-summary-grid">
+        <div class="report-summary-card">
+          <div class="report-summary-num">${filteredLogs.length}</div>
+          <div class="report-summary-label">Weeks logged</div>
+        </div>
+        <div class="report-summary-card">
+          <div class="report-summary-num">${schoolWeeks.length}</div>
+          <div class="report-summary-label">School weeks</div>
+        </div>
+        <div class="report-summary-card">
+          <div class="report-summary-num">${adventureWeeks.length}</div>
+          <div class="report-summary-label">Adventure weeks</div>
+        </div>
+        <div class="report-summary-card">
+          <div class="report-summary-num">${allBooks.length}</div>
+          <div class="report-summary-label">Books finished</div>
+        </div>
+        <div class="report-summary-card">
+          <div class="report-summary-num">${readAlouds.length}</div>
+          <div class="report-summary-label">Read alouds</div>
+        </div>
+        <div class="report-summary-card">
+          <div class="report-summary-num">${personalReads.length + assignedReads.length}</div>
+          <div class="report-summary-label">Independent reads</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Subject progress
+  html += `
+    <div class="report-section">
+      <div class="report-section-title">Subject progress</div>
+  `;
+
+  subjects.forEach(subject => {
+    const pct = subject.totalLessons > 0
+      ? Math.round((subject.lessonsCompleted / subject.totalLessons) * 100)
+      : 0;
+    const archivedBadge = subject.archived
+      ? `<span class="report-archived-badge">archived</span>`
+      : '';
+    html += `
+      <div class="report-subject-row">
+        <div class="report-subject-info">
+          <div class="report-subject-name">${subject.name} ${archivedBadge}</div>
+          <div class="report-subject-curriculum">${subject.curriculum}</div>
+        </div>
+        <div>
+          <div class="report-progress-bg">
+            <div class="report-progress-fill" style="width:${Math.min(pct,100)}%"></div>
+          </div>
+        </div>
+        <div class="report-subject-stats">
+          <div class="report-subject-pct">${pct}%</div>
+          <div class="report-subject-lessons">${subject.lessonsCompleted} of ${subject.totalLessons} lessons</div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  // Weekly log detail
+  if (reportIncludeWeekly && filteredLogs.length > 0) {
+    html += `
+      <div class="report-section">
+        <div class="report-section-title">Weekly log</div>
+    `;
+
+    filteredLogs.sort((a, b) => a.weekNumber - b.weekNumber).forEach(log => {
+      const logDate = new Date(log.startDate);
+      const endDate = new Date(logDate);
+      endDate.setDate(logDate.getDate() + 6);
+      const dateRange = formatDateShort(log.startDate) + ' – ' + formatDateShort(endDate);
+      const badgeClass = log.logType === 'adventure' ? 'badge-adventure' : 'badge-school';
+      const badgeLabel = log.logType === 'adventure' ? 'Adventure week' : 'School week';
+
+      html += `
+        <div class="report-week-entry">
+          <div class="report-week-header">
+            <span class="report-week-label">Week ${log.weekNumber} · ${dateRange}</span>
+            <span class="report-week-badge ${badgeClass}">${badgeLabel}</span>
+          </div>
+      `;
+
+      if (log.logType === 'adventure') {
+        if (log.experienceTags && log.experienceTags.length > 0) {
+          html += `<div class="report-exp-tags">`;
+          log.experienceTags.forEach(tag => {
+            html += `<span class="report-exp-tag">${tag}</span>`;
+          });
+          html += `</div>`;
+        }
+        if (log.glow) {
+          html += `<div class="report-week-subject">${log.glow}</div>`;
+        }
+      } else {
+        if (log.subjectEntries && log.subjectEntries.length > 0) {
+          log.subjectEntries.forEach(entry => {
+            const subject = subjects.find(s => s.id === entry.subjectId);
+            const subjectName = subject ? subject.name : 'Unknown subject';
+            const details = [];
+            if (entry.lessonsCompleted > 0) details.push(`${entry.lessonsCompleted} lesson${entry.lessonsCompleted > 1 ? 's' : ''}`);
+            if (entry.hoursLogged > 0) details.push(`${entry.hoursLogged} hrs`);
+            if (entry.notes) details.push(entry.notes);
+            html += `
+              <div class="report-week-subject">
+                <span class="report-week-subject-name">${subjectName}</span>
+                ${details.join(' · ')}
+              </div>
+            `;
+          });
+        }
+      }
+
+      if (log.books && log.books.length > 0) {
+        const catLabels = { readaloud: 'Read aloud', personal: 'Personal', assigned: 'Assigned' };
+        const bookList = log.books.map(b => `${b.title} (${catLabels[b.category]})`).join(', ');
+        html += `<div class="report-week-books">Books finished: ${bookList}</div>`;
+      }
+
+      html += `</div>`;
+    });
+
+    html += `</div>`;
+  }
+
+  // Books finished
+  if (reportIncludeBooks && allBooks.length > 0) {
+    html += `
+      <div class="report-section">
+        <div class="report-section-title">Books finished this period</div>
+        <div class="report-books-grid">
+    `;
+
+    allBooks.forEach(book => {
+      const catClass = book.category === 'readaloud' ? 'rcat-readaloud' :
+                       book.category === 'personal' ? 'rcat-personal' : 'rcat-assigned';
+      const catLabel = book.category === 'readaloud' ? 'Read aloud' :
+                       book.category === 'personal' ? 'Personal' : 'Assigned';
+      html += `
+        <div class="report-book-entry">
+          <span class="report-book-cat ${catClass}">${catLabel}</span>
+          <span class="report-book-title">${book.title}</span>
+        </div>
+      `;
+    });
+
+    html += `</div></div>`;
+  }
+
+  // Highlights
+  if (reportIncludeHighlights && allGlows.length > 0) {
+    html += `
+      <div class="report-section">
+        <div class="report-section-title">Highlights — moments that mattered</div>
+    `;
+
+    allGlows.sort((a, b) => a.weekNumber - b.weekNumber).forEach(log => {
+      const isAdventure = log.logType === 'adventure';
+      const weekLabel = `Week ${log.weekNumber} · ${isAdventure ? 'Adventure week' : 'School week'} · ${formatDateShort(log.startDate)}`;
+      html += `
+        <div class="report-glow-entry">
+          <div class="report-glow-text">"${log.glow}"</div>
+          <div class="report-glow-meta">${weekLabel}</div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+  }
+
+  // Footer
+  html += `
+    <div class="report-footer">
+      <div class="report-footer-text">
+        This document is a personal learning record prepared by ${family.nickname} for the ${activeYear.label} school year.
+        It is not an official government document. All information is self-reported by the family.
+      </div>
+    </div>
+  `;
+
+  html += `</div>`;
+
+  document.getElementById('report-content').innerHTML = html;
+  showScreen('screen-report');
+});
+
+// =====================
+// BACK FROM REPORT
+// =====================
+document.getElementById('btn-back-from-report').addEventListener('click', () => {
+  showScreen('screen-settings');
+});
+
+// =====================
+// PRINT REPORT
+// =====================
+document.getElementById('btn-print-report').addEventListener('click', () => {
+  window.print();
+});
