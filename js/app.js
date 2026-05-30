@@ -737,6 +737,7 @@ document.getElementById('btn-save-school-week').addEventListener('click', () => 
     startDate: currentWeekStartDate.toISOString(),
     logType: 'school',
     subjectEntries,
+    books: [...schoolBooks],
     glow,
     experienceTags: [],
     createdAt: new Date().toISOString()
@@ -744,10 +745,10 @@ document.getElementById('btn-save-school-week').addEventListener('click', () => 
 
   family.children[currentChildIndex] = child;
   saveData('family', family);
+  resetBookState();
   renderDashboard();
   showScreen('screen-dashboard');
 });
-
 document.querySelectorAll('.exp-tag').forEach(tag => {
   tag.addEventListener('click', () => {
     tag.classList.toggle('selected');
