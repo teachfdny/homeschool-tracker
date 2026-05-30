@@ -1724,6 +1724,8 @@ body {
   body {
     max-width: 100%;
     padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .screen {
@@ -1740,5 +1742,66 @@ body {
 
   .report-doc {
     padding: 0;
+  }
+
+  .report-summary-card {
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .report-progress-bg {
+    background: #e5e7eb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .report-progress-fill {
+    background: #534AB7 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .report-book-cat {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .rcat-readaloud {
+    background: #EEEDFE !important;
+    color: #3C3489 !important;
+  }
+
+  .rcat-personal {
+    background: #E1F5EE !important;
+    color: #085041 !important;
+  }
+
+  .rcat-assigned {
+    background: #fef3c7 !important;
+    color: #78350f !important;
+  }
+
+  .report-subject-pct {
+    color: #534AB7 !important;
+  }
+
+  .report-glow-text {
+    border-left: 2px solid #534AB7 !important;
+  }
+
+  .badge-school {
+    background: #EEEDFE !important;
+    color: #3C3489 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badge-adventure {
+    background: #fbeaf0 !important;
+    color: #72243e !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
