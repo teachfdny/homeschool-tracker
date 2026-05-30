@@ -611,6 +611,7 @@ document.getElementById('btn-log-week').addEventListener('click', () => {
 
   currentWeekType = null;
   document.querySelectorAll('.week-type-card').forEach(c => c.classList.remove('selected'));
+  resetBookState();
   showScreen('screen-week-type');
 });
 
