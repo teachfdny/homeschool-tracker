@@ -466,19 +466,53 @@
       <p>This goes straight into your Wrapped highlight reel.</p>
     </div>
 
-    <div class="form-group">
+   <div class="form-group">
       <label for="adventure-glow-input">What happened this week?</label>
       <textarea
         id="adventure-glow-input"
         class="glow-textarea"
         placeholder="e.g. We went on a cruise — Emma touched a dolphin!"
-        rows="4"
+        rows="3"
       ></textarea>
     </div>
 
     <div class="gem-notice" id="adventure-gem-notice">
       <i class="ti ti-diamond"></i>
       <span id="adventure-gem-notice-text">Logging this experience keeps your streak alive.</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="book-log-section">
+      <div class="book-log-title">📚 Any books finished this week?</div>
+      <div class="book-log-sub">Even on adventure weeks, books get finished. Log them here.</div>
+
+      <div class="book-input-row">
+        <input type="text" id="adventure-book-input" class="book-input" placeholder="Book title..." />
+        <button class="book-add-btn" id="adventure-book-add">+ Add</button>
+      </div>
+
+      <div class="category-row">
+        <button class="cat-btn sel" data-cat="readaloud" id="adventure-cat-readaloud">Read aloud</button>
+        <button class="cat-btn" data-cat="personal" id="adventure-cat-personal">Personal</button>
+        <button class="cat-btn" data-cat="assigned" id="adventure-cat-assigned">Assigned</button>
+      </div>
+
+      <div id="adventure-book-list"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="glow-card">
+      <div class="glow-title">
+        <i class="ti ti-sparkles"></i> This week's glow
+      </div>
+      <textarea
+        id="adventure-glow-input-final"
+        class="glow-textarea"
+        placeholder="What's one thing worth remembering from this week?"
+        rows="3"
+      ></textarea>
     </div>
 
     <button class="btn-primary" id="btn-save-adventure-week">Save this week</button>
