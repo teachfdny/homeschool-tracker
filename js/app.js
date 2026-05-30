@@ -1200,33 +1200,39 @@ function renderBookList(books, listId, removeCallback) {
 // =====================
 // SCHOOL WEEK BOOKS
 // =====================
+function refreshSchoolBookList() {
+  renderBookList(schoolBooks, 'school-book-list', (index) => {
+    schoolBooks.splice(index, 1);
+    refreshSchoolBookList();
+  });
+}
+
 document.getElementById('school-book-add').addEventListener('click', () => {
   const input = document.getElementById('school-book-input');
   const title = input.value.trim();
   if (!title) { alert('Please enter a book title.'); return; }
-
   schoolBooks.push({ title, category: schoolSelectedCat, addedAt: new Date().toISOString() });
   input.value = '';
-  renderBookList(schoolBooks, 'school-book-list', (index) => {
-    schoolBooks.splice(index, 1);
-    renderBookList(schoolBooks, 'school-book-list', arguments.callee);
-  });
+  refreshSchoolBookList();
 });
 
 // =====================
 // ADVENTURE WEEK BOOKS
 // =====================
+
+function refreshAdventureBookList() {
+  renderBookList(adventureBooks, 'adventure-book-list', (index) => {
+    adventureBooks.splice(index, 1);
+    refreshAdventureBookList();
+  });
+}
 document.getElementById('adventure-book-add').addEventListener('click', () => {
   const input = document.getElementById('adventure-book-input');
   const title = input.value.trim();
   if (!title) { alert('Please enter a book title.'); return; }
-
   adventureBooks.push({ title, category: adventureSelectedCat, addedAt: new Date().toISOString() });
   input.value = '';
-  renderBookList(adventureBooks, 'adventure-book-list', (index) => {
-    adventureBooks.splice(index, 1);
-    renderBookList(adventureBooks, 'adventure-book-list', arguments.callee);
-  });
+  refreshAdventureBookList();
 });
 
 // =====================
