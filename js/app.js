@@ -1002,3 +1002,123 @@ document.addEventListener('click', (e) => {
     }
   }
 });
+// =====================
+// SETTINGS SCREEN
+// =====================
+let quarteringEnabled = false;
+
+// Open settings
+document.querySelector('.icon-btn').addEventListener('click', () => {
+  const family = loadData('family');
+  if (!family) return;
+
+  // Populate school info
+  document.getElementById('settings-official-name').textContent = family.officialName;
+  document.getElementById('settings-nickname').textContent = family.nickname;
+  document.getElementById('settings-year-start').textContent =
+    family.schoolYearStart.charAt(0).toUpperCase() + family.schoolYearStart.slice(1);
+
+  // Load quarter settings from active year of current child
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+  const quarters = activeYear?.quarterSettings;
+
+  // Set toggle state
+  quarteringEnabled = activeYear?.quarteringEnabled || false;
+  const toggle = document.getElementById('quarterly-toggle');
+  const fields = document.getElementById('quarter-date-fields');
+
+  if (quarteringEnabled) {
+    toggle.classList.add('on');
+    fields.style.display = 'block';
+  } else {
+    toggle.classList.remove('on');
+    fields.style.display = 'none';
+  }
+
+  // Pre-fill dates if they exist
+  if (quarters) {
+    document.getElementById('q1-start').value = quarters.q1?.start || '';
+    document.getElementById('q1-end').value = quarters.q1?.end || '';
+    document.getElementById('q2-start').value = quarters.q2?.start || '';
+    document.getElementById('q2-end').value = quarters.q2?.end || '';
+    document.getElementById('q3-start').value = quarters.q3?.start || '';
+    document.getElementById('q3-end').value = quarters.q3?.end || '';
+    document.getElementById('q4-start').value = quarters.q4?.start || '';
+    document.getElementById('q4-end').value = quarters.q4?.end || '';
+  }
+
+  showScreen('screen-settings');
+});
+
+// Back from settings
+document.getElementById('btn-back-from-settings').addEventListener('click', () => {
+  showScreen('screen-dashboard');
+});
+
+// Quarterly toggle
+document.getElementById('quarterly-toggle').addEventListener('click', () => {
+  quarteringEnabled = !quarteringEnabled;
+  const toggle = document.getElementById('quarterly-toggle');
+  const fields = document.getElementById('quarter-date-fields');
+
+  if (quarteringEnabled) {
+    toggle.classList.add('on');
+    fields.style.display = 'block';
+  } else {
+    toggle.classList.remove('on');
+    fields.style.display = 'none';
+  }
+});
+
+// Save quarter dates
+document.getElementById('btn-save-quarters').addEventListener('click', () => {
+  const q1start = document.getElementById('q1-start').value;
+  const q1end = document.getElementById('q1-end').value;
+  const q2start = document.getElementById('q2-start').value;
+  const q2end = document.getElementById('q2-end').value;
+  const q3start = document.getElementById('q3-start').value;
+  const q3end = document.getElementById('q3-end').value;
+  const q4start = document.getElementById('q4-start').value;
+  const q4end = document.getElementById('q4-end').value;
+
+  // Validate all fields filled if quarterly enabled
+  if (quarteringEnabled) {
+    if (!q1start || !q1end || !q2start || !q2end ||
+        !q3start || !q3end || !q4start || !q4end) {
+      alert('Please fill in all quarter start and end dates.');
+      return;
+    }
+
+    // Validate dates are in order
+    if (new Date(q1start) >= new Date(q1end)) {
+      alert('Q1 start date must be before end date.'); return;
+    }
+    if (new Date(q2start) >= new Date(q2end)) {
+      alert('Q2 start date must be before end date.'); return;
+    }
+    if (new Date(q3start) >= new Date(q3end)) {
+      alert('Q3 start date must be before end date.'); return;
+    }
+    if (new Date(q4start) >= new Date(q4end)) {
+      alert('Q4 start date must be before end date.'); return;
+    }
+  }
+
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+
+  activeYear.quarteringEnabled = quarteringEnabled;
+  activeYear.quarterSettings = {
+    q1: { start: q1start, end: q1end },
+    q2: { start: q2start, end: q2end },
+    q3: { start: q3start, end: q3end },
+    q4: { start: q4start, end: q4end }
+  };
+
+  family.children[currentChildIndex] = child;
+  saveData('family', family);
+
+  alert('Quarter dates saved.');
+  showScre
