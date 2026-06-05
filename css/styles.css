@@ -1954,17 +1954,7 @@ body {
 }
 
 .wrapped-title {
-  font-size: 30px;
-  font-weight: 800;
-  line-height: 1.05;
-  background: linear-gradient(135deg, #e879f9, #818cf8, #38bdf8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 8px;
-  font-family: var(--font-main);
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
+  display: none;
 }
 
 .wrapped-identity {
