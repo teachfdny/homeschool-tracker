@@ -375,6 +375,7 @@ function renderDashboard() {
   renderChildSwitcher(family);
   renderSubjectList(child);
   renderRecentGlows(child);
+  checkWrappedSeason();
 }
 
 function renderChildSwitcher(family) {
@@ -1625,3 +1626,251 @@ document.getElementById('btn-back-from-report').addEventListener('click', () => 
 document.getElementById('btn-print-report').addEventListener('click', () => {
   window.print();
 });
+// =====================
+// WRAPPED HELPERS
+// =====================
+function getRandomGlows(logs, count) {
+  const glowLogs = logs.filter(l => l.glow && l.glow.trim() !== '');
+  if (glowLogs.length <= count) return glowLogs;
+  const shuffled = [...glowLogs].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
+
+function getAdventureCount(logs) {
+  return logs.filter(l => l.logType === 'adventure').length;
+}
+
+function getTopExperienceTags(logs) {
+  const tagCounts = {};
+  logs.forEach(log => {
+    if (log.experienceTags) {
+      log.experienceTags.forEach(tag => {
+        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+      });
+    }
+  });
+  return Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([tag]) => tag);
+}
+
+function getCurriculaFinished(subjects) {
+  return subjects.filter(s => {
+    if (s.totalLessons === 0) return false;
+    const pct = (s.lessonsCompleted / s.totalLessons) * 100;
+    return pct >= 80;
+  }).length;
+}
+
+function isWrappedSeason(family) {
+  const now = new Date();
+  const monthNames = ['january','february','march','april','may','june',
+    'july','august','september','october','november','december'];
+  const startMonthIndex = monthNames.indexOf(family.schoolYearStart || 'august');
+  const endMonthIndex = (startMonthIndex + 11) % 12;
+  return now.getMonth() === endMonthIndex;
+}
+
+// =====================
+// BUILD WRAPPED CARD
+// =====================
+function buildWrappedCard(family, child, activeYear) {
+  const logs = getLogs(child);
+  const subjects = getSubjects(child);
+  const streak = calculateStreak(child);
+  const earnedGems = getEarnedGems(child, family);
+  const glows = getRandomGlows(logs, 3);
+  const adventureCount = getAdventureCount(logs);
+  const topTags = getTopExperienceTags(logs);
+  const curriculaFinished = getCurriculaFinished(subjects);
+  const earnedCount = earnedGems.filter(g => g.earned).length;
+
+  const monthNames = ['january','february','march','april','may','june',
+    'july','august','september','october','november','december'];
+  const startMonthIndex = monthNames.indexOf(family.schoolYearStart || 'august');
+  const monthLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const orderedMonthLabels = [];
+  for (let i = 0; i < 12; i++) {
+    orderedMonthLabels.push(monthLabels[(startMonthIndex + i) % 12]);
+  }
+
+  const gemsHTML = earnedGems.map(gem => {
+    if (!gem.earned) {
+      return `<svg width="25" height="30" viewBox="0 0 30 36">
+        <polygon points="15,2 28,10 28,26 15,34 2,26 2,10" fill="#2a2040" stroke="#3d3060" stroke-width="0.5" opacity="0.3"/>
+      </svg>`;
+    }
+    return `<svg width="25" height="30" viewBox="0 0 30 36">
+      <polygon points="15,2 28,10 28,26 15,34 2,26 2,10" fill="${gem.color}" stroke="${gem.stroke}" stroke-width="0.5"/>
+      <polygon points="15,2 28,10 15,18" fill="${gem.stroke}" opacity="0.5"/>
+      <polygon points="15,2 2,10 15,18" fill="${gem.color}" opacity="0.8"/>
+      <line x1="12" y1="8" x2="18" y2="14" stroke="white" stroke-width="0.5" opacity="0.4"/>
+    </svg>`;
+  }).join('');
+
+  const monthLabelsHTML = orderedMonthLabels.map(m =>
+    `<span class="wrapped-gem-month">${m}</span>`
+  ).join('');
+
+  const glowsHTML = glows.map(log => {
+    const isAdventure = log.logType === 'adventure';
+    const adventureClass = isAdventure ? ' adventure' : '';
+    const weekLabel = `Week ${log.weekNumber} · ${isAdventure ? 'Adventure' : 'School'} week`;
+    return `
+      <div class="wrapped-glow-entry${adventureClass}">
+        <div class="wrapped-glow-text">"${log.glow}"</div>
+        <div class="wrapped-glow-meta">${weekLabel}</div>
+      </div>
+    `;
+  }).join('');
+
+  const noGlowsHTML = glows.length === 0
+    ? `<div style="font-size:12px;color:#6b5f85;font-style:italic;padding:8px 0">No highlights logged yet. Add glows to your weekly logs to see them here.</div>`
+    : '';
+
+  const tagsDisplay = topTags.length > 0
+    ? topTags.join(' · ')
+    : 'field trips · nature · travel';
+
+  const card = document.getElementById('wrapped-card');
+  card.innerHTML = `
+    <div class="wrapped-glow-top"></div>
+    <div class="wrapped-glow-bottom"></div>
+
+    <div class="wrapped-year-label">${activeYear.label} school year</div>
+    <div class="wrapped-title">Your Year,<br>Wrapped</div>
+
+    <div class="wrapped-identity">
+      <div class="wrapped-avatar">${child.avatar}</div>
+      <div>
+        <div class="wrapped-identity-name">${child.grade} grade</div>
+        <div class="wrapped-identity-school">${family.nickname}</div>
+      </div>
+    </div>
+
+    <div class="wrapped-divider"></div>
+
+    <div class="wrapped-section-label">✦ gems collected</div>
+    <div class="wrapped-gems-row">${gemsHTML}</div>
+    <div class="wrapped-gem-months">${monthLabelsHTML}</div>
+    <div class="wrapped-gem-count">${earnedCount} of 12 gems unlocked</div>
+
+    <div class="wrapped-divider"></div>
+
+    <div class="wrapped-section-label">✦ moments that mattered</div>
+    ${glowsHTML}
+    ${noGlowsHTML}
+
+    <div class="wrapped-divider"></div>
+
+    <div class="wrapped-stats-grid">
+      <div class="wrapped-stat-card adventures">
+        <div class="wrapped-stat-label">Adventures</div>
+        <div class="wrapped-stat-num">${adventureCount}</div>
+        <div class="wrapped-stat-sub">${tagsDisplay}</div>
+      </div>
+      <div class="wrapped-stat-card curricula">
+        <div class="wrapped-stat-label">Curricula finished</div>
+        <div class="wrapped-stat-num">${curriculaFinished} <span style="font-size:13px;font-weight:400;color:#c4b5fd">of ${subjects.length}</span></div>
+        <div class="wrapped-stat-sub">80%+ completion</div>
+      </div>
+    </div>
+
+    <div class="wrapped-streak-row">
+      <div class="wrapped-streak-icon">🔥</div>
+      <div>
+        <div class="wrapped-streak-text">${streak}-week logging streak</div>
+        <div class="wrapped-streak-sub">You showed up all year long</div>
+      </div>
+    </div>
+
+    <div class="wrapped-spacer"></div>
+
+    <div class="wrapped-branding">✦ made with A Tale of Changes ✦</div>
+  `;
+}
+
+// =====================
+// SHOW WRAPPED SCREEN
+// =====================
+function showWrapped() {
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+
+  buildWrappedCard(family, child, activeYear);
+  showScreen('screen-wrapped');
+}
+
+// =====================
+// WRAPPED TRIGGERS
+// =====================
+document.getElementById('btn-wrapped-dashboard').addEventListener('click', () => {
+  showWrapped();
+});
+
+document.getElementById('btn-wrapped-settings').addEventListener('click', () => {
+  showWrapped();
+});
+
+document.getElementById('btn-regenerate-wrapped').addEventListener('click', () => {
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+  buildWrappedCard(family, child, activeYear);
+});
+
+document.getElementById('btn-back-from-wrapped').addEventListener('click', () => {
+  showScreen('screen-dashboard');
+});
+
+// =====================
+// SAVE WRAPPED IMAGE
+// =====================
+document.getElementById('btn-save-wrapped').addEventListener('click', () => {
+  const card = document.getElementById('wrapped-card');
+  const btn = document.getElementById('btn-save-wrapped');
+
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  html2canvas(card, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#1a0a2e',
+    logging: false,
+    width: 390,
+    height: card.offsetHeight
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = 'my-homeschool-wrapped.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+    btn.innerHTML = '<i class="ti ti-download"></i> Save image';
+    btn.disabled = false;
+  }).catch(err => {
+    console.error('Wrapped save error:', err);
+    btn.innerHTML = '<i class="ti ti-download"></i> Save image';
+    btn.disabled = false;
+    alert('Something went wrong saving the image. Try again.');
+  });
+});
+
+// =====================
+// CHECK WRAPPED SEASON
+// =====================
+function checkWrappedSeason() {
+  const family = loadData('family');
+  if (!family) return;
+
+  const banner = document.getElementById('wrapped-banner');
+  if (!banner) return;
+
+  if (isWrappedSeason(family)) {
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
