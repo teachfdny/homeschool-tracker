@@ -1785,7 +1785,7 @@ function buildWrappedCard(family, child, activeYear) {
       </div>
     </div>
 
-    <div class="wrapped-spacer"></div>
+    <div style="height:16px"></div>
 
     <div class="wrapped-branding">✦ made with A Tale of Changes ✦</div>
   `;
