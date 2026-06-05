@@ -15,6 +15,7 @@
 
   <!-- Stylesheet -->
   <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -131,6 +132,18 @@
         <div class="streak-num" id="dashboard-streak">0 <span>week streak</span></div>
       </div>
      <div id="dashboard-gems" class="gem-display"></div>
+    </div>
+    <div id="wrapped-banner" style="display:none">
+      <button class="btn-wrapped-banner" id="btn-wrapped-dashboard">
+        <div class="btn-wrapped-inner">
+          <span class="wrapped-banner-gem">💎</span>
+          <div>
+            <div class="wrapped-banner-title">Your Wrapped is ready</div>
+            <div class="wrapped-banner-sub">Generate your year-end shareable graphic</div>
+          </div>
+        </div>
+        <i class="ti ti-arrow-right" style="color:white;font-size:18px" aria-hidden="true"></i>
+      </button>
     </div>
     <button class="btn-log-week" id="btn-log-week">
       <div class="btn-log-inner">
@@ -329,7 +342,13 @@
     </div>
 
     <button class="btn-primary" id="btn-generate-report">Generate learning record</button>
-
+<div class="divider"></div>
+    <div class="section-label">Wrapped</div>
+    <div class="info-box">
+      <i class="ti ti-info-circle"></i>
+      <span>Generate your year-end shareable graphic. Each generation picks different highlight moments.</span>
+    </div>
+    <button class="btn-primary" id="btn-wrapped-settings">Generate my Wrapped</button>
   </div>
 
   <!-- REPORT SCREEN -->
@@ -344,7 +363,26 @@
     </div>
     <div id="report-content"></div>
   </div>
-  
+  <!-- WRAPPED SCREEN -->
+  <div id="screen-wrapped" class="screen">
+    <div class="wrapped-toolbar no-print">
+      <button class="btn-back" id="btn-back-from-wrapped">
+        <i class="ti ti-arrow-left"></i> Back
+      </button>
+      <button class="btn-regenerate" id="btn-regenerate-wrapped">
+        <i class="ti ti-refresh"></i> Regenerate
+      </button>
+    </div>
+    <div class="wrapped-instructions no-print">
+      Tap save to download your Wrapped graphic and share it anywhere.
+    </div>
+    <div id="wrapped-card-container">
+      <div id="wrapped-card"></div>
+    </div>
+    <button class="btn-save-wrapped no-print" id="btn-save-wrapped">
+      <i class="ti ti-download"></i> Save image
+    </button>
+  </div>
   <!-- EDIT SUBJECT SCREEN -->
   <div id="screen-edit-subject" class="screen">
     <div class="screen-header">
