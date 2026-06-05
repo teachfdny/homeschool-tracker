@@ -1805,3 +1805,392 @@ body {
     print-color-adjust: exact;
   }
 }
+/* =====================
+   WRAPPED BANNER
+   ===================== */
+.btn-wrapped-banner {
+  width: 100%;
+  background: linear-gradient(135deg, #1a0a2e, #2d1654);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: opacity 0.2s;
+}
+
+.btn-wrapped-banner:hover {
+  opacity: 0.9;
+}
+
+.btn-wrapped-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wrapped-banner-gem {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.wrapped-banner-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  font-family: var(--font-main);
+}
+
+.wrapped-banner-sub {
+  font-size: 12px;
+  color: #c4b5fd;
+  margin-top: 2px;
+  font-family: var(--font-main);
+}
+
+/* =====================
+   WRAPPED TOOLBAR
+   ===================== */
+.wrapped-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 16px;
+  margin-bottom: 8px;
+}
+
+.btn-regenerate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  border: 1px solid #AFA9EC;
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-main);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-regenerate:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* =====================
+   WRAPPED INSTRUCTIONS
+   ===================== */
+.wrapped-instructions {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* =====================
+   WRAPPED CARD CONTAINER
+   ===================== */
+.wrapped-card-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+#wrapped-card-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+/* =====================
+   WRAPPED CARD
+   ===================== */
+#wrapped-card {
+  width: 390px;
+  min-height: 844px;
+  background: #1a0a2e;
+  border-radius: 16px;
+  padding: 26px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.wrapped-glow-top {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(124,58,237,0.18), transparent 70%);
+  pointer-events: none;
+}
+
+.wrapped-glow-bottom {
+  position: absolute;
+  bottom: -40px;
+  left: -40px;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, rgba(219,39,119,0.12), transparent 70%);
+  pointer-events: none;
+}
+
+.wrapped-year-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #a78bfa;
+  margin-bottom: 4px;
+  font-family: var(--font-main);
+}
+
+.wrapped-title {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.05;
+  background: linear-gradient(135deg, #e879f9, #818cf8, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  font-family: var(--font-main);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.wrapped-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.wrapped-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #EEEDFE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.wrapped-identity-name {
+  font-size: 13px;
+  color: white;
+  font-weight: 700;
+  font-family: var(--font-main);
+  line-height: 1.2;
+}
+
+.wrapped-identity-school {
+  font-size: 11px;
+  color: #c4b5fd;
+  font-family: var(--font-main);
+}
+
+.wrapped-divider {
+  border: none;
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+  margin: 8px 0;
+}
+
+.wrapped-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a78bfa;
+  margin-bottom: 7px;
+  font-family: var(--font-main);
+}
+
+.wrapped-gems-row {
+  display: flex;
+  gap: 3px;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+
+.wrapped-gem-months {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+
+.wrapped-gem-month {
+  font-size: 8px;
+  color: #6b5f85;
+  font-family: var(--font-main);
+  width: 25px;
+  text-align: center;
+}
+
+.wrapped-gem-count {
+  font-size: 10px;
+  color: #a78bfa;
+  margin-top: 3px;
+  font-family: var(--font-main);
+}
+
+.wrapped-glow-entry {
+  background: rgba(255,255,255,0.05);
+  border-left: 2px solid #a78bfa;
+  border-radius: 0 8px 8px 0;
+  padding: 8px 10px;
+  margin-bottom: 5px;
+}
+
+.wrapped-glow-entry.adventure {
+  background: rgba(219,39,119,0.08);
+  border-left-color: #db2777;
+}
+
+.wrapped-glow-text {
+  font-size: 12px;
+  color: #e9d5ff;
+  font-style: italic;
+  line-height: 1.4;
+  font-family: var(--font-main);
+}
+
+.wrapped-glow-meta {
+  font-size: 9px;
+  color: #6b5f85;
+  margin-top: 3px;
+  font-family: var(--font-main);
+}
+
+.wrapped-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.wrapped-stat-card {
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.wrapped-stat-card.adventures {
+  background: rgba(219,39,119,0.1);
+  border: 0.5px solid rgba(219,39,119,0.25);
+}
+
+.wrapped-stat-card.curricula {
+  background: rgba(124,58,237,0.1);
+  border: 0.5px solid rgba(124,58,237,0.25);
+}
+
+.wrapped-stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+  font-family: var(--font-main);
+}
+
+.wrapped-stat-card.adventures .wrapped-stat-label { color: #f9a8d4; }
+.wrapped-stat-card.curricula .wrapped-stat-label { color: #c4b5fd; }
+
+.wrapped-stat-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: white;
+  line-height: 1.1;
+  font-family: var(--font-main);
+}
+
+.wrapped-stat-sub {
+  font-size: 10px;
+  margin-top: 2px;
+  font-family: var(--font-main);
+}
+
+.wrapped-stat-card.adventures .wrapped-stat-sub { color: #f9a8d4; }
+.wrapped-stat-card.curricula .wrapped-stat-sub { color: #c4b5fd; }
+
+.wrapped-streak-row {
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.wrapped-streak-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.wrapped-streak-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  font-family: var(--font-main);
+}
+
+.wrapped-streak-sub {
+  font-size: 11px;
+  color: #9f8cb5;
+  margin-top: 1px;
+  font-family: var(--font-main);
+}
+
+.wrapped-spacer {
+  flex: 1;
+}
+
+.wrapped-branding {
+  text-align: center;
+  border-top: 0.5px solid rgba(255,255,255,0.06);
+  padding-top: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #3d2f60;
+  font-family: var(--font-main);
+}
+
+/* =====================
+   SAVE WRAPPED BUTTON
+   ===================== */
+.btn-save-wrapped {
+  width: 100%;
+  background: #534AB7;
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  transition: opacity 0.2s;
+}
+
+.btn-save-wrapped:hover {
+  opacity: 0.9;
+}
