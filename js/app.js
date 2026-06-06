@@ -1,18 +1,44 @@
 // =====================
+// FIREBASE IMPORTS
+// =====================
+import {
+  auth,
+  signUp,
+  signIn,
+  sendMagicLink,
+  completeMagicLinkSignIn,
+  resetPassword,
+  logOut,
+  saveUserData,
+  loadUserData,
+  onAuthStateChanged
+} from './firebase.js';
+
+// =====================
 // APP STATE
 // =====================
 let currentChildIndex = 0;
 let selectedGrade = null;
 let selectedAvatar = null;
+let currentUser = null;
+let appData = null;
 
 // =====================
-// LOCAL STORAGE HELPERS
+// DATA HELPERS
 // =====================
-function saveData(key, data) {
-  localStorage.setItem(key, JSON.stringify(data));
+async function saveData(key, data) {
+  if (key === 'family' && currentUser) {
+    appData = data;
+    await saveUserData(currentUser.uid, data);
+  } else {
+    localStorage.setItem(key, JSON.stringify(data));
+  }
 }
 
 function loadData(key) {
+  if (key === 'family' && appData) {
+    return appData;
+  }
   const data = localStorage.getItem(key);
   return data ? JSON.parse(data) : null;
 }
@@ -449,9 +475,7 @@ function renderSubjectList(child) {
   renderArchivedSubjects(child);
 }
 
-// =====================
-// INIT
-// =====================
+
 // =====================
 // MIGRATION
 // =====================
@@ -487,18 +511,19 @@ function migrateData(family) {
 // INIT
 // =====================
 document.addEventListener('DOMContentLoaded', () => {
-  let family = loadData('family');
-  family = migrateData(family);
-
-  if (family && family.children.length > 0) {
-    renderDashboard();
-    showScreen('screen-dashboard');
-  } else if (family) {
-    showScreen('screen-add-child');
-  } else {
-    showScreen('screen-onboarding');
+  // Check if this is a magic link redirect
+  if (window.location.href.includes('oobCode')) {
+    const savedEmail = localStorage.getItem('emailForSignIn');
+    if (!savedEmail) {
+      showScreen('screen-magic-confirm');
+      return;
+    }
   }
+  // Auth state is handled by onAuthStateChanged
+  // Show auth screen by default until Firebase resolves
+  showScreen('screen-auth');
 });
+
 // =====================
 // ADD SUBJECT SCREEN
 // =====================
@@ -1013,22 +1038,19 @@ document.addEventListener('click', (e) => {
 let quarteringEnabled = false;
 
 // Open settings
-document.querySelector('.icon-btn').addEventListener('click', () => {
+function openSettings() {
   const family = loadData('family');
   if (!family) return;
 
-  // Populate school info
   document.getElementById('settings-official-name').textContent = family.officialName;
   document.getElementById('settings-nickname').textContent = family.nickname;
   document.getElementById('settings-year-start').textContent =
     family.schoolYearStart.charAt(0).toUpperCase() + family.schoolYearStart.slice(1);
 
-  // Load quarter settings from active year of current child
   const child = family.children[currentChildIndex];
   const activeYear = getActiveYear(child);
   const quarters = activeYear?.quarterSettings;
 
-  // Set toggle state
   quarteringEnabled = activeYear?.quarteringEnabled || false;
   const toggle = document.getElementById('quarterly-toggle');
   const fields = document.getElementById('quarter-date-fields');
@@ -1041,7 +1063,6 @@ document.querySelector('.icon-btn').addEventListener('click', () => {
     fields.style.display = 'none';
   }
 
-  // Pre-fill dates if they exist
   if (quarters) {
     document.getElementById('q1-start').value = quarters.q1?.start || '';
     document.getElementById('q1-end').value = quarters.q1?.end || '';
@@ -1054,11 +1075,22 @@ document.querySelector('.icon-btn').addEventListener('click', () => {
   }
 
   showScreen('screen-settings');
-});
+}
+
+document.querySelector('.icon-btn').addEventListener('click', openSettings);
 
 // Back from settings
 document.getElementById('btn-back-from-settings').addEventListener('click', () => {
   showScreen('screen-dashboard');
+});
+
+document.getElementById('btn-sign-out').addEventListener('click', async () => {
+  if (confirm('Sign out of your account?')) {
+    await logOut();
+    appData = null;
+    currentUser = null;
+    showScreen('screen-auth');
+  }
 });
 
 // Quarterly toggle
@@ -1884,3 +1916,266 @@ function checkWrappedSeason() {
     banner.style.display = 'none';
   }
 }
+// =====================
+// AUTH UI HELPERS
+// =====================
+function showAuthError(elementId, message) {
+  const el = document.getElementById(elementId);
+  if (el) {
+    el.textContent = message;
+    el.style.display = 'block';
+  }
+}
+
+function hideAuthError(elementId) {
+  const el = document.getElementById(elementId);
+  if (el) el.style.display = 'none';
+}
+
+function getAuthErrorMessage(code) {
+  const messages = {
+    'auth/email-already-in-use': 'An account with this email already exists.',
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/weak-password': 'Password must be at least 6 characters.',
+    'auth/user-not-found': 'No account found with this email.',
+    'auth/wrong-password': 'Incorrect password. Try again or use a magic link.',
+    'auth/too-many-requests': 'Too many attempts. Please try again later.',
+    'auth/invalid-credential': 'Incorrect email or password.',
+  };
+  return messages[code] || 'Something went wrong. Please try again.';
+}
+
+// =====================
+// AUTH TABS
+// =====================
+document.getElementById('tab-signin').addEventListener('click', () => {
+  document.getElementById('tab-signin').classList.add('active');
+  document.getElementById('tab-signup').classList.remove('active');
+  document.getElementById('auth-signin-form').style.display = 'block';
+  document.getElementById('auth-signup-form').style.display = 'none';
+  hideAuthError('auth-error');
+});
+
+document.getElementById('tab-signup').addEventListener('click', () => {
+  document.getElementById('tab-signup').classList.add('active');
+  document.getElementById('tab-signin').classList.remove('active');
+  document.getElementById('auth-signup-form').style.display = 'block';
+  document.getElementById('auth-signin-form').style.display = 'none';
+  hideAuthError('signup-error');
+});
+
+// =====================
+// SIGN IN
+// =====================
+document.getElementById('btn-signin').addEventListener('click', async () => {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  hideAuthError('auth-error');
+
+  if (!email || !password) {
+    showAuthError('auth-error', 'Please enter your email and password.');
+    return;
+  }
+
+  try {
+    await signIn(email, password);
+  } catch (err) {
+    showAuthError('auth-error', getAuthErrorMessage(err.code));
+  }
+});
+
+// =====================
+// SIGN UP
+// =====================
+document.getElementById('btn-signup').addEventListener('click', async () => {
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const confirm = document.getElementById('signup-confirm').value;
+  hideAuthError('signup-error');
+
+  if (!email || !password || !confirm) {
+    showAuthError('signup-error', 'Please fill in all fields.');
+    return;
+  }
+
+  if (password !== confirm) {
+    showAuthError('signup-error', 'Passwords do not match.');
+    return;
+  }
+
+  if (password.length < 6) {
+    showAuthError('signup-error', 'Password must be at least 6 characters.');
+    return;
+  }
+
+  try {
+    await signUp(email, password);
+  } catch (err) {
+    showAuthError('signup-error', getAuthErrorMessage(err.code));
+  }
+});
+
+// =====================
+// MAGIC LINK
+// =====================
+document.getElementById('btn-magic-link').addEventListener('click', async () => {
+  const email = document.getElementById('auth-email').value.trim();
+  hideAuthError('auth-error');
+
+  if (!email) {
+    showAuthError('auth-error', 'Please enter your email address first.');
+    return;
+  }
+
+  try {
+    await sendMagicLink(email);
+    localStorage.setItem('emailForSignIn', email);
+    document.getElementById('magic-email-display').textContent = email;
+    showScreen('screen-magic-sent');
+  } catch (err) {
+    showAuthError('auth-error', getAuthErrorMessage(err.code));
+  }
+});
+
+document.getElementById('btn-back-to-auth').addEventListener('click', () => {
+  showScreen('screen-auth');
+});
+
+// =====================
+// MAGIC LINK CONFIRM
+// =====================
+document.getElementById('btn-magic-confirm').addEventListener('click', async () => {
+  const email = document.getElementById('magic-confirm-email').value.trim();
+  hideAuthError('magic-confirm-error');
+
+  if (!email) {
+    showAuthError('magic-confirm-error', 'Please enter your email address.');
+    return;
+  }
+
+  try {
+    await completeMagicLinkSignIn(email);
+    localStorage.removeItem('emailForSignIn');
+  } catch (err) {
+    showAuthError('magic-confirm-error', getAuthErrorMessage(err.code));
+  }
+});
+
+// =====================
+// FORGOT PASSWORD
+// =====================
+document.getElementById('btn-forgot-password').addEventListener('click', async () => {
+  const email = document.getElementById('auth-email').value.trim();
+  hideAuthError('auth-error');
+
+  if (!email) {
+    showAuthError('auth-error', 'Please enter your email address first.');
+    return;
+  }
+
+  try {
+    await resetPassword(email);
+    showAuthError('auth-error', 'Password reset email sent. Check your inbox.');
+    document.getElementById('auth-error').style.background = '#f0fdf4';
+    document.getElementById('auth-error').style.borderColor = '#86efac';
+    document.getElementById('auth-error').style.color = '#166534';
+  } catch (err) {
+    showAuthError('auth-error', getAuthErrorMessage(err.code));
+  }
+});
+
+// =====================
+// SIGN OUT
+// =====================
+document.querySelector('.icon-btn').addEventListener('click', () => {
+  const family = loadData('family');
+  if (!family) return;
+
+  // Check if coming from settings gear or opening settings
+  // We'll handle this by checking if settings screen is already active
+  if (document.getElementById('screen-settings').classList.contains('active')) return;
+
+  const officialName = document.getElementById('settings-official-name');
+  if (officialName) {
+    document.getElementById('settings-official-name').textContent = family.officialName;
+    document.getElementById('settings-nickname').textContent = family.nickname;
+    document.getElementById('settings-year-start').textContent =
+      family.schoolYearStart.charAt(0).toUpperCase() + family.schoolYearStart.slice(1);
+
+    const child = family.children[currentChildIndex];
+    const activeYear = getActiveYear(child);
+    const quarters = activeYear?.quarterSettings;
+
+    quarteringEnabled = activeYear?.quarteringEnabled || false;
+    const toggle = document.getElementById('quarterly-toggle');
+    const fields = document.getElementById('quarter-date-fields');
+
+    if (quarteringEnabled) {
+      toggle.classList.add('on');
+      fields.style.display = 'block';
+    } else {
+      toggle.classList.remove('on');
+      fields.style.display = 'none';
+    }
+
+    if (quarters) {
+      document.getElementById('q1-start').value = quarters.q1?.start || '';
+      document.getElementById('q1-end').value = quarters.q1?.end || '';
+      document.getElementById('q2-start').value = quarters.q2?.start || '';
+      document.getElementById('q2-end').value = quarters.q2?.end || '';
+      document.getElementById('q3-start').value = quarters.q3?.start || '';
+      document.getElementById('q3-end').value = quarters.q3?.end || '';
+      document.getElementById('q4-start').value = quarters.q4?.start || '';
+      document.getElementById('q4-end').value = quarters.q4?.end || '';
+    }
+
+    showScreen('screen-settings');
+  }
+});
+
+// =====================
+// AUTH STATE LISTENER
+// =====================
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+
+    // Check for magic link completion
+    if (window.location.href.includes('oobCode')) {
+      const savedEmail = localStorage.getItem('emailForSignIn');
+      if (savedEmail) {
+        try {
+          await completeMagicLinkSignIn(savedEmail);
+          localStorage.removeItem('emailForSignIn');
+        } catch (err) {
+          console.error('Magic link error:', err);
+        }
+      } else {
+        showScreen('screen-magic-confirm');
+        return;
+      }
+    }
+
+    // Load user data from Firestore
+    try {
+      const data = await loadUserData(user.uid);
+      if (data) {
+        appData = migrateData(data);
+        if (appData !== data) {
+          await saveUserData(user.uid, appData);
+        }
+        renderDashboard();
+        showScreen('screen-dashboard');
+      } else {
+        showScreen('screen-onboarding');
+      }
+    } catch (err) {
+      console.error('Error loading user data:', err);
+      showScreen('screen-onboarding');
+    }
+  } else {
+    currentUser = null;
+    appData = null;
+    showScreen('screen-auth');
+  }
+});
