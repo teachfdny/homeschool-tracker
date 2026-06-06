@@ -382,7 +382,11 @@ function renderDashboard() {
 
   document.getElementById('display-nickname').textContent = '✦ ' + family.nickname;
   document.getElementById('dashboard-avatar').textContent = child.avatar;
-  document.getElementById('dashboard-child-name').textContent = child.name;
+  const nameEl = document.getElementById('dashboard-child-name');
+  nameEl.innerHTML = `${child.name} <button class="btn-edit-child" id="btn-edit-child-trigger" aria-label="Edit child"><i class="ti ti-pencil" style="font-size:14px"></i></button>`;
+  document.getElementById('btn-edit-child-trigger').addEventListener('click', () => {
+    openEditChild(currentChildIndex);
+  });
   document.getElementById('dashboard-child-grade').textContent =
     child.grade + ' grade · ' + (activeYear ? activeYear.label : '') + ' school year';
 
