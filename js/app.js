@@ -2179,3 +2179,100 @@ onAuthStateChanged(auth, async (user) => {
     showScreen('screen-auth');
   }
 });
+// =====================
+// EDIT CHILD
+// =====================
+let editingChildIndex = null;
+let editSelectedGrade = null;
+let editSelectedAvatar = null;
+
+function openEditChild(childIndex) {
+  const family = loadData('family');
+  const child = family.children[childIndex];
+  editingChildIndex = childIndex;
+  editSelectedGrade = child.grade;
+  editSelectedAvatar = child.avatar;
+
+  // Pre-fill name
+  document.getElementById('edit-child-name').value = child.name;
+
+  // Pre-select grade
+  document.querySelectorAll('.edit-grade-chip').forEach(chip => {
+    chip.classList.remove('selected');
+    if (chip.dataset.grade === child.grade) {
+      chip.classList.add('selected');
+    }
+  });
+
+  // Pre-select avatar
+  document.querySelectorAll('.edit-avatar-opt').forEach(opt => {
+    opt.classList.remove('selected');
+    if (opt.dataset.avatar === child.avatar) {
+      opt.classList.add('selected');
+    }
+  });
+
+  showScreen('screen-edit-child');
+}
+
+// Grade selection
+document.querySelectorAll('.edit-grade-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.edit-grade-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    editSelectedGrade = chip.dataset.grade;
+  });
+});
+
+// Avatar selection
+document.querySelectorAll('.edit-avatar-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.edit-avatar-opt').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    editSelectedAvatar = opt.dataset.avatar;
+  });
+});
+
+// Back button
+document.getElementById('btn-back-from-edit-child').addEventListener('click', () => {
+  showScreen('screen-dashboard');
+});
+
+// Save changes
+document.getElementById('btn-save-edit-child').addEventListener('click', async () => {
+  const name = document.getElementById('edit-child-name').value.trim();
+
+  if (!name) { alert('Please enter a name.'); return; }
+  if (!editSelectedGrade) { alert('Please select a grade.'); return; }
+  if (!editSelectedAvatar) { alert('Please select an avatar.'); return; }
+
+  const family = loadData('family');
+  family.children[editingChildIndex].name = name;
+  family.children[editingChildIndex].grade = editSelectedGrade;
+  family.children[editingChildIndex].avatar = editSelectedAvatar;
+
+  await saveData('family', family);
+  renderDashboard();
+  showScreen('screen-dashboard');
+});
+
+// Delete child
+document.getElementById('btn-delete-child').addEventListener('click', async () => {
+  const family = loadData('family');
+  const child = family.children[editingChildIndex];
+
+  if (!confirm(`Remove ${child.name}? This permanently deletes all their data and cannot be undone.`)) return;
+
+  family.children.splice(editingChildIndex, 1);
+
+  if (family.children.length === 0) {
+    await saveData('family', family);
+    showScreen('screen-add-child');
+    return;
+  }
+
+  currentChildIndex = 0;
+  await saveData('family', family);
+  renderDashboard();
+  showScreen('screen-dashboard');
+});
