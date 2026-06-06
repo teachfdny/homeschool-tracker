@@ -2315,3 +2315,25 @@ body {
   margin-bottom: 24px;
   width: 100%;
 }
+/* =====================
+   SIGN OUT BUTTON
+   ===================== */
+.btn-signout {
+  width: 100%;
+  background: transparent;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-main);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.15s;
+}
+
+.btn-signout:hover {
+  background: #fef2f2;
+  border-color: #b91c1c;
+}
