@@ -2337,3 +2337,25 @@ body {
   background: #fef2f2;
   border-color: #b91c1c;
 }
+/* =====================
+   EDIT CHILD BUTTON
+   ===================== */
+.btn-edit-child {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  vertical-align: middle;
+  margin-left: 4px;
+  transition: background 0.15s;
+}
+
+.btn-edit-child:hover {
+  background: rgba(255,255,255,0.25);
+}
