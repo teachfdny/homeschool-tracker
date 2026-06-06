@@ -460,6 +460,63 @@
       <i class="ti ti-download"></i> Save image
     </button>
   </div>
+  <!-- EDIT CHILD SCREEN -->
+  <div id="screen-edit-child" class="screen">
+    <div class="screen-header">
+      <button class="btn-back" id="btn-back-from-edit-child">
+        <i class="ti ti-arrow-left"></i> Back
+      </button>
+      <h1>Edit child</h1>
+      <p>Update name, grade, or avatar.</p>
+    </div>
+
+    <div class="form-group">
+      <label for="edit-child-name">Child's first name</label>
+      <input type="text" id="edit-child-name" placeholder="First name" />
+    </div>
+
+    <div class="form-group">
+      <label>Grade level</label>
+      <div class="grade-grid" id="edit-grade-grid">
+        <div class="grade-chip edit-grade-chip" data-grade="K">K</div>
+        <div class="grade-chip edit-grade-chip" data-grade="1st">1st</div>
+        <div class="grade-chip edit-grade-chip" data-grade="2nd">2nd</div>
+        <div class="grade-chip edit-grade-chip" data-grade="3rd">3rd</div>
+        <div class="grade-chip edit-grade-chip" data-grade="4th">4th</div>
+        <div class="grade-chip edit-grade-chip" data-grade="5th">5th</div>
+        <div class="grade-chip edit-grade-chip" data-grade="6th">6th</div>
+        <div class="grade-chip edit-grade-chip" data-grade="7th">7th</div>
+        <div class="grade-chip edit-grade-chip" data-grade="8th">8th</div>
+        <div class="grade-chip edit-grade-chip" data-grade="9th">9th</div>
+        <div class="grade-chip edit-grade-chip" data-grade="10th">10th</div>
+        <div class="grade-chip edit-grade-chip" data-grade="11th">11th</div>
+        <div class="grade-chip edit-grade-chip" data-grade="12th">12th</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Avatar</label>
+      <div class="avatar-grid" id="edit-avatar-grid">
+        <div class="avatar-opt edit-avatar-opt" data-avatar="🦋">🦋</div>
+        <div class="avatar-opt edit-avatar-opt" data-avatar="🌙">🌙</div>
+        <div class="avatar-opt edit-avatar-opt" data-avatar="⭐">⭐</div>
+        <div class="avatar-opt edit-avatar-opt" data-avatar="🌈">🌈</div>
+        <div class="avatar-opt edit-avatar-opt" data-avatar="🦄">🦄</div>
+        <div class="avatar-opt edit-avatar-opt" data-avatar="🌸">🌸</div>
+        <div class="avatar-opt edit-avatar-opt" data-avatar="🐉">🐉</div>
+        <div class="avatar-opt edit-avatar-opt" data-avatar="🔮">🔮</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-save-edit-child">Save changes</button>
+
+    <div class="archive-section">
+      <div class="archive-label">Remove this child</div>
+      <div class="archive-sub">Permanently removes this child and all their data. This cannot be undone.</div>
+      <button class="btn-archive" id="btn-delete-child">Remove child</button>
+    </div>
+
+  </div>
   <!-- EDIT SUBJECT SCREEN -->
   <div id="screen-edit-subject" class="screen">
     <div class="screen-header">
