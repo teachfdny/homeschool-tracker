@@ -807,8 +807,9 @@ document.getElementById('btn-adventure-tags-continue').addEventListener('click',
 });
 
 document.getElementById('btn-save-adventure-week').addEventListener('click', () => {
+  const adventureDesc = document.getElementById('adventure-glow-input').value.trim();
   const glow = document.getElementById('adventure-glow-input-final').value.trim();
-  if (!glow) { alert('Please write a sentence about your adventure before saving.'); return; }
+  if (!adventureDesc) { alert('Please describe what you did this week before saving.'); return; }
 
   const family = loadData('family');
   const child = family.children[currentChildIndex];
