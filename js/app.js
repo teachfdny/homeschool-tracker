@@ -2395,3 +2395,179 @@ document.getElementById('btn-dismiss-new-year').addEventListener('click', () => 
   localStorage.setItem('newYearDismissed', new Date().toISOString());
   showScreen('screen-dashboard');
 });
+// =====================
+// UNIT STUDY STATE
+// =====================
+let schoolUnitStudies = [];
+let adventureUnitStudies = [];
+
+const UNIT_SUBJECTS = ['Science', 'Geography', 'History', 'Literature', 'Math', 'Art', 'Writing', 'Music', 'PE', 'Health'];
+
+// =====================
+// UNIT STUDY HELPERS
+// =====================
+function createUnitStudyEntry(prefix, index) {
+  const entryId = prefix + '-unit-' + index;
+  const div = document.createElement('div');
+  div.className = 'unit-entry';
+  div.id = entryId;
+
+  div.innerHTML = `
+    <div class="unit-entry-header">
+      <span class="unit-entry-label">Study ${index + 1}</span>
+      <button class="unit-remove-btn" data-index="${index}" data-prefix="${prefix}">×</button>
+    </div>
+    <div class="unit-type-chips">
+      <div class="unit-type-chip selected" data-type="unit" data-index="${index}" data-prefix="${prefix}">Unit study</div>
+      <div class="unit-type-chip" data-type="book" data-index="${index}" data-prefix="${prefix}">Book study</div>
+    </div>
+    <input class="unit-input" placeholder="Study or book title..." id="${prefix}-unit-title-${index}" />
+    <span class="unit-subject-label">Subject connections</span>
+    <div class="unit-subject-tags" id="${prefix}-unit-tags-${index}">
+      ${UNIT_SUBJECTS.map(s => `
+        <span class="unit-subject-tag" data-subject="${s}" data-index="${index}" data-prefix="${prefix}">${s}</span>
+      `).join('')}
+    </div>
+    <textarea class="unit-notes" rows="2" placeholder="What did you cover this week within this study?" id="${prefix}-unit-notes-${index}"></textarea>
+  `;
+
+  // Type chip listeners
+  div.querySelectorAll('.unit-type-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      div.querySelectorAll('.unit-type-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      const studies = prefix === 'school' ? schoolUnitStudies : adventureUnitStudies;
+      studies[chip.dataset.index].type = chip.dataset.type;
+    });
+  });
+
+  // Subject tag listeners
+  div.querySelectorAll('.unit-subject-tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      tag.classList.toggle('selected');
+      const studies = prefix === 'school' ? schoolUnitStudies : adventureUnitStudies;
+      const study = studies[parseInt(tag.dataset.index)];
+      if (!study.subjects) study.subjects = [];
+      if (tag.classList.contains('selected')) {
+        study.subjects.push(tag.dataset.subject);
+      } else {
+        study.subjects = study.subjects.filter(s => s !== tag.dataset.subject);
+      }
+    });
+  });
+
+  // Remove button
+  div.querySelector('.unit-remove-btn').addEventListener('click', () => {
+    const idx = parseInt(div.querySelector('.unit-remove-btn').dataset.index);
+    if (prefix === 'school') {
+      schoolUnitStudies.splice(idx, 1);
+      renderUnitStudies('school');
+    } else {
+      adventureUnitStudies.splice(idx, 1);
+      renderUnitStudies('adventure');
+    }
+  });
+
+  return div;
+}
+
+function renderUnitStudies(prefix) {
+  const container = document.getElementById(prefix + '-unit-study-entries');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const studies = prefix === 'school' ? schoolUnitStudies : adventureUnitStudies;
+  studies.forEach((study, index) => {
+    const entry = createUnitStudyEntry(prefix, index);
+    container.appendChild(entry);
+
+    // Restore values
+    const titleEl = document.getElementById(prefix + '-unit-title-' + index);
+    const notesEl = document.getElementById(prefix + '-unit-notes-' + index);
+    if (titleEl) titleEl.value = study.title || '';
+    if (notesEl) notesEl.value = study.notes || '';
+
+    // Restore type
+    entry.querySelectorAll('.unit-type-chip').forEach(chip => {
+      chip.classList.toggle('selected', chip.dataset.type === (study.type || 'unit'));
+    });
+
+    // Restore subjects
+    if (study.subjects) {
+      entry.querySelectorAll('.unit-subject-tag').forEach(tag => {
+        tag.classList.toggle('selected', study.subjects.includes(tag.dataset.subject));
+      });
+    }
+  });
+}
+
+function collectUnitStudyData(prefix) {
+  const studies = prefix === 'school' ? schoolUnitStudies : adventureUnitStudies;
+  return studies.map((study, index) => {
+    const titleEl = document.getElementById(prefix + '-unit-title-' + index);
+    const notesEl = document.getElementById(prefix + '-unit-notes-' + index);
+    return {
+      title: titleEl ? titleEl.value.trim() : study.title || '',
+      type: study.type || 'unit',
+      subjects: study.subjects || [],
+      notes: notesEl ? notesEl.value.trim() : study.notes || ''
+    };
+  }).filter(s => s.title !== '');
+}
+
+// =====================
+// UNIT STUDY TOGGLES
+// =====================
+function setupUnitStudyToggle(toggleId, sectionId, prefix) {
+  const toggle = document.getElementById(toggleId);
+  const section = document.getElementById(sectionId);
+  if (!toggle || !section) return;
+
+  toggle.addEventListener('click', () => {
+    const isOn = toggle.classList.contains('on');
+    if (isOn) {
+      toggle.classList.remove('on');
+      section.style.display = 'none';
+    } else {
+      toggle.classList.add('on');
+      section.style.display = 'block';
+    }
+  });
+}
+
+setupUnitStudyToggle('toggle-unit-study', 'unit-study-section', 'school');
+setupUnitStudyToggle('toggle-unit-study-adventure', 'unit-study-section-adventure', 'adventure');
+
+// =====================
+// ADD UNIT STUDY BUTTONS
+// =====================
+document.getElementById('btn-add-unit-study').addEventListener('click', () => {
+  schoolUnitStudies.push({ title: '', type: 'unit', subjects: [], notes: '' });
+  renderUnitStudies('school');
+});
+
+document.getElementById('btn-add-unit-study-adventure').addEventListener('click', () => {
+  adventureUnitStudies.push({ title: '', type: 'unit', subjects: [], notes: '' });
+  renderUnitStudies('adventure');
+});
+
+// =====================
+// RESET UNIT STUDIES
+// =====================
+function resetUnitStudies() {
+  schoolUnitStudies = [];
+  adventureUnitStudies = [];
+
+  const schoolSection = document.getElementById('unit-study-section');
+  const adventureSection = document.getElementById('unit-study-section-adventure');
+  if (schoolSection) schoolSection.style.display = 'none';
+  if (adventureSection) adventureSection.style.display = 'none';
+
+  document.getElementById('toggle-unit-study')?.classList.remove('on');
+  document.getElementById('toggle-unit-study-adventure')?.classList.remove('on');
+
+  const schoolEntries = document.getElementById('school-unit-study-entries');
+  const adventureEntries = document.getElementById('adventure-unit-study-entries');
+  if (schoolEntries) schoolEntries.innerHTML = '';
+  if (adventureEntries) adventureEntries.innerHTML = '';
+}
