@@ -2169,6 +2169,8 @@ onAuthStateChanged(auth, async (user) => {
           await saveUserData(user.uid, appData);
         }
         renderDashboard();
+        checkNewYearPrompt();
+        if (document.getElementById('screen-new-year').classList.contains('active')) return;
         showScreen('screen-dashboard');
       } else {
         showScreen('screen-onboarding');
