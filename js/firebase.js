@@ -32,7 +32,7 @@ async function signIn(email, password) {
 
 async function sendMagicLink(email) {
   const actionCodeSettings = {
-    url: window.location.origin + '/index.html',
+    url: window.location.origin,
     handleCodeInApp: true
   };
   return sendSignInLinkToEmail(auth, email, actionCodeSettings);
