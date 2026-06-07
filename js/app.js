@@ -2298,7 +2298,7 @@ function getNextYearLabel(family) {
 function shouldShowNewYearPrompt(family) {
   const monthNames = ['january','february','march','april','may','june',
     'july','august','september','october','november','december'];
-  const startMonthIndex = monthNames.indexOf(family.schoolYearStart || 'august');
+ const startMonthIndex = monthNames.indexOf('june'); // TEMP FOR TESTING
   const now = new Date();
 
   // Only show in the school year start month
