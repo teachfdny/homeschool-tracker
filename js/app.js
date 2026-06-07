@@ -2280,3 +2280,116 @@ document.getElementById('btn-delete-child').addEventListener('click', async () =
   renderDashboard();
   showScreen('screen-dashboard');
 });
+// =====================
+// NEW SCHOOL YEAR PROMPT
+// =====================
+function getNextYearLabel(family) {
+  const monthNames = ['january','february','march','april','may','june',
+    'july','august','september','october','november','december'];
+  const startMonthIndex = monthNames.indexOf(family.schoolYearStart || 'august');
+  const now = new Date();
+  let startYear = now.getFullYear();
+  if (now.getMonth() < startMonthIndex) startYear = now.getFullYear() - 1;
+  return (startYear + 1) + '-' + (startYear + 2);
+}
+
+function shouldShowNewYearPrompt(family) {
+  const monthNames = ['january','february','march','april','may','june',
+    'july','august','september','october','november','december'];
+  const startMonthIndex = monthNames.indexOf(family.schoolYearStart || 'august');
+  const now = new Date();
+
+  // Only show in the school year start month
+  if (now.getMonth() !== startMonthIndex) return false;
+
+  // Check if already dismissed this month
+  const dismissed = localStorage.getItem('newYearDismissed');
+  if (dismissed) {
+    const dismissedDate = new Date(dismissed);
+    if (dismissedDate.getMonth() === now.getMonth() &&
+        dismissedDate.getFullYear() === now.getFullYear()) {
+      return false;
+    }
+  }
+
+  // Check if snoozed
+  const snoozed = localStorage.getItem('newYearSnoozed');
+  if (snoozed) {
+    const snoozeDate = new Date(snoozed);
+    if (now < snoozeDate) return false;
+  }
+
+  // Check if active year is already the new year
+  const child = family.children[0];
+  if (!child) return false;
+  const activeYear = getActiveYear(child);
+  if (!activeYear) return false;
+
+  const nextLabel = getNextYearLabel(family);
+  if (activeYear.label === nextLabel) return false;
+
+  return true;
+}
+
+function checkNewYearPrompt() {
+  const family = loadData('family');
+  if (!family || !family.children || family.children.length === 0) return;
+  if (!shouldShowNewYearPrompt(family)) return;
+
+  const nextLabel = getNextYearLabel(family);
+  const monthNames = ['january','february','march','april','may','june',
+    'july','august','september','october','november','december'];
+  const startMonthIndex = monthNames.indexOf(family.schoolYearStart || 'august');
+  const monthLabel = new Date(2024, startMonthIndex, 1)
+    .toLocaleString('default', { month: 'long' });
+
+  document.getElementById('new-year-title').textContent =
+    'Ready for a new school year?';
+  document.getElementById('new-year-sub').textContent =
+    'It\'s ' + monthLabel + ' — time to start fresh.';
+  document.getElementById('new-year-label').textContent = nextLabel;
+
+  showScreen('screen-new-year');
+}
+
+// Start new year
+document.getElementById('btn-start-new-year').addEventListener('click', async () => {
+  const family = loadData('family');
+  const nextLabel = getNextYearLabel(family);
+
+  // Archive current year and create new one for each child
+  family.children = family.children.map(child => {
+    // Mark current year inactive
+    if (child.schoolYears) {
+      child.schoolYears = child.schoolYears.map(y => ({ ...y, isActive: false }));
+    }
+
+    // Create fresh new year
+    const newYear = createSchoolYear(nextLabel, family.schoolYearStart);
+    child.schoolYears.push(newYear);
+    return child;
+  });
+
+  // Clear snooze and dismiss flags
+  localStorage.removeItem('newYearSnoozed');
+  localStorage.removeItem('newYearDismissed');
+
+  await saveData('family', family);
+  currentChildIndex = 0;
+  renderDashboard();
+  showScreen('screen-dashboard');
+});
+
+// Snooze 2 weeks
+document.getElementById('btn-snooze-new-year').addEventListener('click', () => {
+  const snoozeUntil = new Date();
+  snoozeUntil.setDate(snoozeUntil.getDate() + 14);
+  localStorage.setItem('newYearSnoozed', snoozeUntil.toISOString());
+  showScreen('screen-dashboard');
+});
+
+// Dismiss for this month
+document.getElementById('btn-dismiss-new-year').addEventListener('click', () => {
+  localStorage.setItem('newYearDismissed', new Date().toISOString());
+  showScreen('screen-dashboard');
+});
