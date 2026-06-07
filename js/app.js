@@ -762,13 +762,14 @@ document.getElementById('btn-save-school-week').addEventListener('click', () => 
     }
   });
 
-  activeYear.weeklyLogs.push({
+ activeYear.weeklyLogs.push({
     id: Date.now(),
     weekNumber: currentWeekNumber,
     startDate: currentWeekStartDate.toISOString(),
     logType: 'school',
     subjectEntries,
     books: [...schoolBooks],
+    unitStudies: collectUnitStudyData('school'),
     glow,
     experienceTags: [],
     createdAt: new Date().toISOString()
@@ -777,6 +778,7 @@ document.getElementById('btn-save-school-week').addEventListener('click', () => 
   family.children[currentChildIndex] = child;
   saveData('family', family);
   resetBookState();
+  resetUnitStudies();
   renderDashboard();
   showScreen('screen-dashboard');
 });
@@ -812,13 +814,14 @@ document.getElementById('btn-save-adventure-week').addEventListener('click', () 
   const child = family.children[currentChildIndex];
   const activeYear = getActiveYear(child);
 
-  activeYear.weeklyLogs.push({
+ activeYear.weeklyLogs.push({
     id: Date.now(),
     weekNumber: currentWeekNumber,
     startDate: currentWeekStartDate.toISOString(),
     logType: 'adventure',
     subjectEntries: [],
     books: [...adventureBooks],
+    unitStudies: collectUnitStudyData('adventure'),
     glow,
     experienceTags: selectedExperienceTags,
     createdAt: new Date().toISOString()
@@ -827,6 +830,7 @@ document.getElementById('btn-save-adventure-week').addEventListener('click', () 
   family.children[currentChildIndex] = child;
   saveData('family', family);
   resetBookState();
+  resetUnitStudies();
   renderDashboard();
   showScreen('screen-dashboard');
 });
