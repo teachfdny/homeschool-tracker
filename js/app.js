@@ -148,15 +148,19 @@ function updateChildIndicator(screenId) {
   const screen = document.getElementById(screenId);
   if (!screen) return;
 
-  // Remove existing indicator if any
-  const existing = screen.querySelector('.child-indicator-pill');
-  if (existing) existing.remove();
+  // Remove existing indicator and row if any
+  screen.querySelectorAll('.child-indicator-pill').forEach(el => el.remove());
+  screen.querySelectorAll('.header-indicator-row').forEach(el => {
+    const backBtn = el.querySelector('.btn-back');
+    if (backBtn) el.parentNode.insertBefore(backBtn, el);
+    el.remove();
+  });
 
   // Find the btn-back button in this screen
   const backBtn = screen.querySelector('.btn-back');
   if (!backBtn) return;
 
-  // Create indicator
+  // Create indicator pill
   const indicator = document.createElement('div');
   indicator.className = 'child-indicator-pill';
   indicator.innerHTML = `
@@ -164,11 +168,10 @@ function updateChildIndicator(screenId) {
     <span class="child-indicator-name">${child.name}</span>
   `;
 
-  // Wrap back button and indicator in a row
-  const parent = backBtn.parentNode;
+  // Create row wrapper and replace back button with row
   const row = document.createElement('div');
   row.className = 'header-indicator-row';
-  parent.insertBefore(row, backBtn);
+  backBtn.parentNode.insertBefore(row, backBtn);
   row.appendChild(backBtn);
   row.appendChild(indicator);
 }
