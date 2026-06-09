@@ -2715,7 +2715,7 @@ document.getElementById('btn-copy-subjects').addEventListener('click', async () 
   const activeYear = getActiveYear(child);
 
   const copiedSubjects = siblingSubjects.map(subject => ({
-    id: Date.now() + Math.random(),
+    id: Math.floor(Date.now() + Math.random() * 1000),
     name: subject.name,
     type: subject.type,
     curriculum: subject.curriculum,
