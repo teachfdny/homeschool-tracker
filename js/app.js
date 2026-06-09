@@ -2730,32 +2730,91 @@ document.getElementById('btn-copy-subjects').addEventListener('click', async () 
     createdAt: new Date().toISOString()
   }));
 
-  activeYear.subjects = [...activeYear.subjects, ...copiedSubjects];
+ activeYear.subjects = [...activeYear.subjects, ...copiedSubjects];
   family.children[currentChildIndex] = child;
   await saveData('family', family);
 
-  // Show confirmation and hide copy banner
+  // Hide copy banner
   document.getElementById('copy-subjects-banner').style.display = 'none';
 
-  // Insert confirmation message above the form
-  const existingConfirm = document.getElementById('copy-confirm-msg');
-  if (!existingConfirm) {
-    const confirmDiv = document.createElement('div');
-    confirmDiv.id = 'copy-confirm-msg';
-    confirmDiv.className = 'copy-confirm-banner';
-    confirmDiv.innerHTML = `
+  // Show copied subjects list for review
+  showCopiedSubjectsReview(sibling.name, copiedSubjects.length);
+});
+
+function showCopiedSubjectsReview(siblingName, count) {
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+  const copiedSubjects = activeYear.subjects.filter(s => s.copied && !s.archived);
+
+  const screen = document.getElementById('screen-add-subject');
+  const existingReview = document.getElementById('copied-review-section');
+  if (existingReview) existingReview.remove();
+
+  const reviewDiv = document.createElement('div');
+  reviewDiv.id = 'copied-review-section';
+  reviewDiv.innerHTML = `
+    <div class="copy-confirm-banner" style="margin-bottom:14px">
       <i class="ti ti-circle-check" style="font-size:16px;color:#059669;flex-shrink:0;margin-top:1px"></i>
       <div class="copy-confirm-text">
-        ${copiedSubjects.length} subject${copiedSubjects.length !== 1 ? 's' : ''} copied from ${sibling.name}.
-        Edit or remove any that don't apply. Lesson counts start fresh at 0.
+        ${count} subject${count !== 1 ? 's' : ''} copied from ${siblingName}.
+        Remove any that don't apply, then add new ones below.
       </div>
-    `;
-    const formGroup = document.querySelector('#screen-add-subject .form-group');
-    if (formGroup) {
-      formGroup.parentNode.insertBefore(confirmDiv, formGroup);
-    }
+    </div>
+    <div class="section-label">Copied subjects</div>
+    <div id="copied-subjects-list"></div>
+    <div class="divider"></div>
+  `;
+
+  const formGroup = document.querySelector('#screen-add-subject .form-group');
+  if (formGroup) {
+    formGroup.parentNode.insertBefore(reviewDiv, formGroup);
   }
 
-  renderDashboard();
-  showScreen('screen-dashboard');
-});
+  renderCopiedSubjectsList();
+}
+
+function renderCopiedSubjectsList() {
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+  const copiedSubjects = activeYear.subjects.filter(s => s.copied && !s.archived);
+
+  const list = document.getElementById('copied-subjects-list');
+  if (!list) return;
+
+  if (copiedSubjects.length === 0) {
+    list.innerHTML = `<p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:12px">All copied subjects removed.</p>`;
+    return;
+  }
+
+  list.innerHTML = copiedSubjects.map(subject => `
+    <div class="subject-card" style="display:flex;align-items:center;gap:8px;cursor:default" data-copied-id="${subject.id}">
+      <div style="flex:1;min-width:0">
+        <div class="subject-name">${subject.name} <span class="copied-badge">copied</span></div>
+        <div class="subject-meta" style="margin-top:2px">
+          <span>${subject.curriculum}</span>
+          <span>${subject.totalLessons} lessons</span>
+        </div>
+      </div>
+      <button class="btn-remove-copied" data-id="${subject.id}" style="background:none;border:none;color:var(--color-text-tertiary);font-size:20px;cursor:pointer;padding:0;flex-shrink:0">×</button>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.btn-remove-copied').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = parseFloat(btn.dataset.id);
+      const family = loadData('family');
+      const child = family.children[currentChildIndex];
+      const activeYear = getActiveYear(child);
+      const subjectIndex = activeYear.subjects.findIndex(s => s.id === id);
+      if (subjectIndex !== -1) {
+        activeYear.subjects.splice(subjectIndex, 1);
+        family.children[currentChildIndex] = child;
+        await saveData('family', family);
+        renderCopiedSubjectsList();
+        renderDashboard();
+      }
+    });
+  });
+}
