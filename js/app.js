@@ -2395,8 +2395,9 @@ function shouldShowNewYearPrompt(family) {
   const activeYear = getActiveYear(child);
   if (!activeYear) return false;
 
-  const nextLabel = getNextYearLabel(family);
-  if (activeYear.label === nextLabel) return false;
+ const nextLabel = getNextYearLabel(family);
+  const currentLabel = generateYearLabel(family.schoolYearStart);
+  if (activeYear.label === nextLabel || activeYear.label === currentLabel) return false;
 
   return true;
 }
