@@ -1593,6 +1593,69 @@ document.getElementById('btn-generate-report').addEventListener('click', () => {
     html += `</div>`;
   }
 
+// Unit and book studies
+  const allUnitStudies = [];
+  filteredLogs.forEach(log => {
+    if (log.unitStudies && log.unitStudies.length > 0) {
+      log.unitStudies.forEach(study => {
+        if (!study.title) return;
+        const existing = allUnitStudies.find(s => s.title === study.title && s.type === study.type);
+        if (existing) {
+          existing.weeks.push(log.weekNumber);
+          if (study.notes && !existing.notes.includes(study.notes)) {
+            existing.notes.push(study.notes);
+          }
+        } else {
+          allUnitStudies.push({
+            title: study.title,
+            type: study.type || 'unit',
+            subjects: study.subjects || [],
+            weeks: [log.weekNumber],
+            notes: study.notes ? [study.notes] : []
+          });
+        }
+      });
+    }
+  });
+
+  if (allUnitStudies.length > 0) {
+    html += `
+      <div class="report-section">
+        <div class="report-section-title">Unit &amp; book studies</div>
+    `;
+
+    allUnitStudies.forEach(study => {
+      const typeLabel = study.type === 'book' ? 'Book study' : 'Unit study';
+      const weeks = study.weeks.sort((a, b) => a - b);
+      const weekRange = weeks.length === 1
+        ? 'Week ' + weeks[0]
+        : 'Weeks ' + weeks[0] + '–' + weeks[weeks.length - 1];
+      const subjectList = study.subjects && study.subjects.length > 0
+        ? study.subjects.join(', ')
+        : '';
+      const combinedNotes = study.notes.filter(n => n).join(' · ');
+
+      html += `
+        <div class="report-subject-row">
+          <div class="report-subject-info">
+            <div class="report-subject-name">
+              ${study.title}
+              <span class="report-archived-badge">${typeLabel}</span>
+            </div>
+            ${subjectList ? `<div class="report-subject-curriculum">${subjectList}</div>` : ''}
+            ${combinedNotes ? `<div class="report-subject-curriculum" style="font-style:italic">${combinedNotes}</div>` : ''}
+          </div>
+          <div class="report-subject-stats">
+            <div class="report-subject-pct" style="font-size:12px;font-weight:500">${weekRange}</div>
+            <div class="report-subject-lessons">${weeks.length} week${weeks.length > 1 ? 's' : ''}</div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+  }
+  
   // Books finished
   if (reportIncludeBooks && allBooks.length > 0) {
     html += `
