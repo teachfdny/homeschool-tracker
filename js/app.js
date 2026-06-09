@@ -422,6 +422,7 @@ function renderDashboard() {
   renderSubjectList(child);
   renderRecentGlows(child);
   checkWrappedSeason();
+  attachSubjectCardListeners()
 }
 
 function renderChildSwitcher(family) {
