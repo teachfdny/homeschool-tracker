@@ -2721,3 +2721,39 @@ body {
   margin-left: 6px;
   vertical-align: middle;
 }
+/* =====================
+   CHILD INDICATOR
+   ===================== */
+.header-indicator-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.child-indicator-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-bg-secondary);
+  border: 0.5px solid var(--color-border);
+  border-radius: 20px;
+  padding: 4px 10px 4px 6px;
+}
+
+.child-indicator-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.child-indicator-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
