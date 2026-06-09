@@ -352,6 +352,22 @@ function getWeekNumber(family) {
   const startMonthIndex = monthNames.indexOf(family.schoolYearStart);
   let startYear = now.getFullYear();
   if (now.getMonth() < startMonthIndex) startYear = now.getFullYear() - 1;
+  
+  // If active year label exists use its start date instead
+  const family2 = loadData('family');
+  if (family2 && family2.children && family2.children[currentChildIndex]) {
+    const child2 = family2.children[currentChildIndex];
+    const activeYear2 = getActiveYear(child2);
+    if (activeYear2 && activeYear2.startDate) {
+      const yearStart = new Date(activeYear2.startDate);
+      const diff = now - yearStart;
+      if (diff > 0) {
+        const weeks = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
+        return Math.min(52, Math.max(1, weeks));
+      }
+    }
+  }
+  
   const schoolStart = new Date(startYear, startMonthIndex, 1);
   if (now < schoolStart) return 1;
   const diff = now - schoolStart;
