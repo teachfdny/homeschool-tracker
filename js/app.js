@@ -2656,3 +2656,101 @@ function resetUnitStudies() {
   if (schoolEntries) schoolEntries.innerHTML = '';
   if (adventureEntries) adventureEntries.innerHTML = '';
 }
+// =====================
+// COPY SUBJECTS
+// =====================
+function updateCopySubjectsBanner() {
+  const family = loadData('family');
+  if (!family) return;
+
+  const banner = document.getElementById('copy-subjects-banner');
+  if (!banner) return;
+
+  // Find other children with subjects
+  const otherChildren = family.children.filter((child, index) => {
+    if (index === currentChildIndex) return false;
+    const subjects = getSubjects(child);
+    return subjects && subjects.filter(s => !s.archived).length > 0;
+  });
+
+  if (otherChildren.length === 0) {
+    banner.style.display = 'none';
+    return;
+  }
+
+  // Use the first sibling with subjects
+  const sibling = otherChildren[0];
+  const siblingSubjects = getSubjects(sibling).filter(s => !s.archived);
+
+  banner.style.display = 'block';
+  document.getElementById('copy-subjects-avatar').textContent = sibling.avatar;
+  document.getElementById('copy-subjects-label').textContent = 'Copy from ' + sibling.name;
+  document.getElementById('copy-subjects-sub').textContent =
+    siblingSubjects.length + ' subject' + (siblingSubjects.length !== 1 ? 's' : '') + ' · ' + sibling.grade + ' grade';
+}
+
+document.getElementById('btn-copy-subjects').addEventListener('click', async () => {
+  const family = loadData('family');
+  if (!family) return;
+
+  // Find sibling with subjects
+  const otherChildren = family.children.filter((child, index) => {
+    if (index === currentChildIndex) return false;
+    const subjects = getSubjects(child);
+    return subjects && subjects.filter(s => !s.archived).length > 0;
+  });
+
+  if (otherChildren.length === 0) return;
+
+  const sibling = otherChildren[0];
+  const siblingSubjects = getSubjects(sibling).filter(s => !s.archived);
+
+  // Copy subjects to current child with fresh lesson counts
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+
+  const copiedSubjects = siblingSubjects.map(subject => ({
+    id: Date.now() + Math.random(),
+    name: subject.name,
+    type: subject.type,
+    curriculum: subject.curriculum,
+    totalLessons: subject.totalLessons,
+    duration: subject.duration,
+    creditBearing: false,
+    creditMethod: subject.creditMethod || 'lessons',
+    lessonsCompleted: 0,
+    hoursLogged: 0,
+    archived: false,
+    copied: true,
+    createdAt: new Date().toISOString()
+  }));
+
+  activeYear.subjects = [...activeYear.subjects, ...copiedSubjects];
+  family.children[currentChildIndex] = child;
+  await saveData('family', family);
+
+  // Show confirmation and hide copy banner
+  document.getElementById('copy-subjects-banner').style.display = 'none';
+
+  // Insert confirmation message above the form
+  const existingConfirm = document.getElementById('copy-confirm-msg');
+  if (!existingConfirm) {
+    const confirmDiv = document.createElement('div');
+    confirmDiv.id = 'copy-confirm-msg';
+    confirmDiv.className = 'copy-confirm-banner';
+    confirmDiv.innerHTML = `
+      <i class="ti ti-circle-check" style="font-size:16px;color:#059669;flex-shrink:0;margin-top:1px"></i>
+      <div class="copy-confirm-text">
+        ${copiedSubjects.length} subject${copiedSubjects.length !== 1 ? 's' : ''} copied from ${sibling.name}.
+        Edit or remove any that don't apply. Lesson counts start fresh at 0.
+      </div>
+    `;
+    const formGroup = document.querySelector('#screen-add-subject .form-group');
+    if (formGroup) {
+      formGroup.parentNode.insertBefore(confirmDiv, formGroup);
+    }
+  }
+
+  renderDashboard();
+  showScreen('screen-dashboard');
+});
