@@ -125,6 +125,55 @@ function createChild(name, grade, avatar, schoolYearStart) {
 }
 
 // =====================
+// CHILD INDICATOR
+// =====================
+function updateChildIndicator(screenId) {
+  const family = loadData('family');
+  if (!family || !family.children || family.children.length < 2) return;
+
+  const child = family.children[currentChildIndex];
+  if (!child) return;
+
+  const screens = [
+    'screen-week-type',
+    'screen-school-log',
+    'screen-adventure-tags',
+    'screen-adventure-glow',
+    'screen-add-subject',
+    'screen-edit-subject'
+  ];
+
+  if (!screens.includes(screenId)) return;
+
+  const screen = document.getElementById(screenId);
+  if (!screen) return;
+
+  // Remove existing indicator if any
+  const existing = screen.querySelector('.child-indicator-pill');
+  if (existing) existing.remove();
+
+  // Find the btn-back button in this screen
+  const backBtn = screen.querySelector('.btn-back');
+  if (!backBtn) return;
+
+  // Create indicator
+  const indicator = document.createElement('div');
+  indicator.className = 'child-indicator-pill';
+  indicator.innerHTML = `
+    <div class="child-indicator-avatar">${child.avatar}</div>
+    <span class="child-indicator-name">${child.name}</span>
+  `;
+
+  // Wrap back button and indicator in a row
+  const parent = backBtn.parentNode;
+  const row = document.createElement('div');
+  row.className = 'header-indicator-row';
+  parent.insertBefore(row, backBtn);
+  row.appendChild(backBtn);
+  row.appendChild(indicator);
+}
+
+// =====================
 // SCREEN NAVIGATION
 // =====================
 function showScreen(screenId) {
