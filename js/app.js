@@ -2804,11 +2804,11 @@ function renderCopiedSubjectsList() {
 
   list.querySelectorAll('.btn-remove-copied').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const id = parseFloat(btn.dataset.id);
+      const id = parseInt(btn.dataset.id);
       const family = loadData('family');
       const child = family.children[currentChildIndex];
       const activeYear = getActiveYear(child);
-      const subjectIndex = activeYear.subjects.findIndex(s => s.id === id);
+      const subjectIndex = activeYear.subjects.findIndex(s => Math.floor(s.id) === id);
       if (subjectIndex !== -1) {
         activeYear.subjects.splice(subjectIndex, 1);
         family.children[currentChildIndex] = child;
