@@ -551,6 +551,11 @@ let selectedCreditMethod = 'lessons';
 let creditBearing = false;
 
 document.getElementById('btn-add-subject').addEventListener('click', () => {
+  // Remove any existing confirm message
+  const existingConfirm = document.getElementById('copy-confirm-msg');
+  if (existingConfirm) existingConfirm.remove();
+  
+  updateCopySubjectsBanner();
   showScreen('screen-add-subject');
 });
 
