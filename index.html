@@ -151,8 +151,41 @@
       </select>
     </div>
 
-    <button class="btn-primary" id="btn-onboarding-continue">Continue</button>
+   <button class="btn-primary" id="btn-onboarding-continue">Continue</button>
   </div>
+
+  <!-- ONBOARDING CONFIRM SCREEN -->
+  <div id="screen-onboarding-confirm" class="screen">
+    <div class="screen-header">
+      <h1>Double check before you continue</h1>
+      <p>Your official name and nickname can't be changed later — make sure they're right.</p>
+    </div>
+
+    <div class="info-card">
+      <div class="info-row">
+        <div class="info-label">Official school name</div>
+        <div class="info-value" id="confirm-official-name"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Homeschool nickname</div>
+        <div class="info-value" id="confirm-nickname"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">School year starts</div>
+        <div class="info-value" id="confirm-year-start"></div>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:14px">
+      <i class="ti ti-info-circle"></i>
+      <span>These names are permanent. The official name is used on transcripts, and the nickname appears on your Wrapped and throughout the app.</span>
+    </div>
+
+    <button class="btn-primary" id="btn-confirm-onboarding">Looks good, continue</button>
+    <button class="btn-ghost" id="btn-edit-onboarding">Go back and edit</button>
+  </div>
+
+  <!-- ADD CHILD SCREEN -->
 
   <!-- ADD CHILD SCREEN -->
   <div id="screen-add-child" class="screen">
