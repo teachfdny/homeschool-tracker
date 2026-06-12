@@ -199,6 +199,24 @@ document.getElementById('btn-onboarding-continue').addEventListener('click', () 
     return;
   }
 
+  // Populate confirmation screen
+  document.getElementById('confirm-official-name').textContent = officialName;
+  document.getElementById('confirm-nickname').textContent = nickname;
+  document.getElementById('confirm-year-start').textContent =
+    schoolYearStart.charAt(0).toUpperCase() + schoolYearStart.slice(1);
+
+  showScreen('screen-onboarding-confirm');
+});
+
+document.getElementById('btn-edit-onboarding').addEventListener('click', () => {
+  showScreen('screen-onboarding');
+});
+
+document.getElementById('btn-confirm-onboarding').addEventListener('click', () => {
+  const officialName = document.getElementById('official-name').value.trim();
+  const nickname = document.getElementById('nickname').value.trim();
+  const schoolYearStart = document.getElementById('year-start').value;
+
   const family = createFamily(officialName, nickname, schoolYearStart);
   saveData('family', family);
   document.getElementById('display-nickname').textContent = '✦ ' + nickname;
