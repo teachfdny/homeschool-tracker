@@ -2757,3 +2757,10 @@ body {
   font-weight: 600;
   color: var(--color-text-primary);
 }
+.log-progress-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
