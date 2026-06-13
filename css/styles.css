@@ -2764,3 +2764,126 @@ body {
   color: var(--color-text-tertiary);
   font-size: 11px;
 }
+/* =====================
+   PAST LOGS
+   ===================== */
+.log-card {
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 8px;
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+}
+
+.log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.log-week {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.log-dates {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 1px;
+}
+
+.log-body {
+  padding: 0 14px 14px;
+  border-top: 0.5px solid var(--color-border);
+  background: var(--color-bg);
+  display: none;
+}
+
+.log-body.open {
+  display: block;
+  padding-top: 12px;
+}
+
+.log-subject-row {
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.log-subject-row:last-of-type {
+  border-bottom: none;
+}
+
+.log-subject-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.log-subject-stats {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+}
+
+.log-notes-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: block;
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+
+.log-notes-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--color-bg-secondary);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--color-text);
+  font-family: var(--font-main);
+}
+
+.log-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 10px;
+}
+
+.log-tag {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.btn-save-log {
+  width: 100%;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-main);
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+.log-empty {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+}
