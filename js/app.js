@@ -212,13 +212,13 @@ document.getElementById('btn-edit-onboarding').addEventListener('click', () => {
   showScreen('screen-onboarding');
 });
 
-document.getElementById('btn-confirm-onboarding').addEventListener('click', () => {
+document.getElementById('btn-confirm-onboarding').addEventListener('click', async () => {
   const officialName = document.getElementById('official-name').value.trim();
   const nickname = document.getElementById('nickname').value.trim();
   const schoolYearStart = document.getElementById('year-start').value;
 
   const family = createFamily(officialName, nickname, schoolYearStart);
-  saveData('family', family);
+  await saveData('family', family);
   document.getElementById('display-nickname').textContent = '✦ ' + nickname;
   showScreen('screen-add-child');
 });
@@ -248,7 +248,7 @@ document.querySelectorAll('.avatar-opt').forEach(opt => {
 // =====================
 // ADD CHILD
 // =====================
-document.getElementById('btn-add-child').addEventListener('click', () => {
+document.getElementById('btn-add-child').addEventListener('click', async () => {
   const name = document.getElementById('child-name').value.trim();
 
   if (!name) { alert('Please enter your child\'s name.'); return; }
@@ -258,7 +258,7 @@ document.getElementById('btn-add-child').addEventListener('click', () => {
   const family = loadData('family');
   const child = createChild(name, selectedGrade, selectedAvatar, family.schoolYearStart);
   family.children.push(child);
-  saveData('family', family);
+  await saveData('family', family);
 
   currentChildIndex = family.children.length - 1;
   renderDashboard();
@@ -662,7 +662,7 @@ document.querySelectorAll('.credit-method').forEach(method => {
   });
 });
 
-document.getElementById('btn-save-subject').addEventListener('click', () => {
+document.getElementById('btn-save-subject').addEventListener('click', async () => {
   const name = document.getElementById('subject-name').value.trim();
   const type = document.getElementById('subject-type').value;
   const curriculum = document.getElementById('subject-curriculum').value.trim();
@@ -688,7 +688,7 @@ document.getElementById('btn-save-subject').addEventListener('click', () => {
 
   activeYear.subjects.push(subject);
   family.children[currentChildIndex] = child;
-  saveData('family', family);
+  await saveData('family', family);
 
   document.getElementById('subject-name').value = '';
   document.getElementById('subject-curriculum').value = '';
@@ -828,7 +828,7 @@ document.getElementById('btn-back-from-school-log').addEventListener('click', ()
 document.getElementById('btn-back-from-adventure-tags').addEventListener('click', () => showScreen('screen-week-type'));
 document.getElementById('btn-back-from-adventure-glow').addEventListener('click', () => showScreen('screen-adventure-tags'));
 
-document.getElementById('btn-save-school-week').addEventListener('click', () => {
+document.getElementById('btn-save-school-week').addEventListener('click', async () => {
   const family = loadData('family');
   const child = family.children[currentChildIndex];
   const activeYear = getActiveYear(child);
@@ -902,7 +902,7 @@ document.getElementById('btn-save-school-week').addEventListener('click', () => 
   }
 
   family.children[currentChildIndex] = child;
-  saveData('family', family);
+  await saveData('family', family);
   resetBookState();
   resetUnitStudies();
   renderDashboard();
@@ -933,7 +933,7 @@ document.getElementById('btn-adventure-tags-continue').addEventListener('click',
   showScreen('screen-adventure-glow');
 });
 
-document.getElementById('btn-save-adventure-week').addEventListener('click', () => {
+document.getElementById('btn-save-adventure-week').addEventListener('click', async () => {
   const adventureDesc = document.getElementById('adventure-glow-input').value.trim();
   const glowInput = document.getElementById('adventure-glow-input-final').value.trim();
   if (!adventureDesc) { alert('Please describe what you did this week before saving.'); return; }
@@ -974,7 +974,7 @@ document.getElementById('btn-save-adventure-week').addEventListener('click', () 
   }
 
   family.children[currentChildIndex] = child;
-  saveData('family', family);
+  await saveData('family', family);
   resetBookState();
   resetUnitStudies();
   renderDashboard();
@@ -1070,7 +1070,7 @@ document.querySelectorAll('#edit-credit-options .credit-method').forEach(method 
   });
 });
 
-document.getElementById('btn-save-edit-subject').addEventListener('click', () => {
+document.getElementById('btn-save-edit-subject').addEventListener('click', async () => {
   const name = document.getElementById('edit-subject-name').value.trim();
   const type = document.getElementById('edit-subject-type').value;
   const curriculum = document.getElementById('edit-subject-curriculum').value.trim();
@@ -1098,12 +1098,12 @@ document.getElementById('btn-save-edit-subject').addEventListener('click', () =>
   };
 
   family.children[currentChildIndex] = child;
-  saveData('family', family);
+  await saveData('family', family);
   renderDashboard();
   showScreen('screen-dashboard');
 });
 
-document.getElementById('btn-archive-subject').addEventListener('click', () => {
+document.getElementById('btn-archive-subject').addEventListener('click', async () => {
   if (!confirm('Archive this subject? It will be removed from your dashboard and log screens but preserved in your year history.')) return;
 
   const family = loadData('family');
@@ -1114,7 +1114,7 @@ document.getElementById('btn-archive-subject').addEventListener('click', () => {
 
   activeYear.subjects[subjectIndex].archived = true;
   family.children[currentChildIndex] = child;
-  saveData('family', family);
+  await saveData('family', family);
   renderDashboard();
   showScreen('screen-dashboard');
 });
@@ -1153,7 +1153,7 @@ function renderArchivedSubjects(child) {
   }).join('');
 
   list.querySelectorAll('.btn-unarchive').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const id = parseInt(btn.dataset.id);
       const family = loadData('family');
@@ -1163,7 +1163,7 @@ function renderArchivedSubjects(child) {
       if (subjectIndex !== -1) {
         activeYear.subjects[subjectIndex].archived = false;
         family.children[currentChildIndex] = child;
-        saveData('family', family);
+        await saveData('family', family);
         renderDashboard();
       }
     });
@@ -1263,7 +1263,7 @@ document.getElementById('quarterly-toggle').addEventListener('click', () => {
 });
 
 // Save quarter dates
-document.getElementById('btn-save-quarters').addEventListener('click', () => {
+document.getElementById('btn-save-quarters').addEventListener('click', async () => {
   const q1start = document.getElementById('q1-start').value;
   const q1end = document.getElementById('q1-end').value;
   const q2start = document.getElementById('q2-start').value;
@@ -1309,7 +1309,7 @@ document.getElementById('btn-save-quarters').addEventListener('click', () => {
   };
 
   family.children[currentChildIndex] = child;
-  saveData('family', family);
+  await saveData('family', family);
 
   alert('Quarter dates saved.');
   showScreen('screen-dashboard');
