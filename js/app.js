@@ -2890,3 +2890,149 @@ function renderCopiedSubjectsList() {
     });
   });
 }
+// =====================
+// PAST LOGS
+// =====================
+const EXPERIENCE_TAG_LABELS = {
+  travel: '✈️ Travel',
+  nature: '🐋 Nature / wildlife',
+  museum: '🏛️ Museum',
+  history: '📖 History',
+  faith: '⛪ Faith',
+  sports: '⚽ Sports',
+  arts: '🎨 Arts',
+  lifeskills: '🍳 Life skills',
+  community: '🤝 Community',
+  other: '✨ Other'
+};
+
+document.getElementById('btn-view-past-logs').addEventListener('click', () => {
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  renderPastLogs(child);
+  showScreen('screen-past-logs');
+});
+
+document.getElementById('btn-back-from-past-logs').addEventListener('click', () => {
+  showScreen('screen-dashboard');
+});
+
+function renderPastLogs(child) {
+  const list = document.getElementById('past-logs-list');
+  list.innerHTML = '';
+
+  const activeYear = getActiveYear(child);
+  const logs = getLogs(child);
+
+  if (!logs || logs.length === 0) {
+    list.innerHTML = `<p class="log-empty">No weeks logged yet this year.</p>`;
+    return;
+  }
+
+  const sorted = [...logs].sort((a, b) => b.weekNumber - a.weekNumber);
+
+  sorted.forEach(log => {
+    const date = new Date(log.startDate);
+    const dateStr = formatWeekDates(date);
+    const isAdventure = log.logType === 'adventure';
+    const typeLabel = isAdventure ? 'Adventure week' : 'School week';
+    const typeTagClass = isAdventure ? 'adventure' : 'school';
+
+    const card = document.createElement('div');
+    card.className = 'log-card';
+
+    let bodyContent = '';
+
+    if (isAdventure) {
+      const tags = (log.experienceTags || [])
+        .map(tag => `<span class="log-tag">${EXPERIENCE_TAG_LABELS[tag] || tag}</span>`)
+        .join('');
+      bodyContent = `
+        <div class="log-tags">${tags}</div>
+        <label class="log-notes-label">This week's glow</label>
+        <input class="log-notes-input" data-glow-id="${log.id}" value="${(log.glow || '').replace(/"/g, '&quot;')}" />
+        <button class="btn-save-log" data-save-id="${log.id}">Save changes</button>
+      `;
+    } else {
+      const entries = (log.subjectEntries || []).map(entry => {
+        const subject = activeYear.subjects.find(s => s.id === entry.subjectId);
+        const subjectName = subject ? subject.name : 'Unknown subject';
+        const lessonText = entry.lessonsCompleted > 0 ? `${entry.lessonsCompleted} lesson${entry.lessonsCompleted !== 1 ? 's' : ''}` : '';
+        const hourText = entry.hoursLogged > 0 ? `${entry.hoursLogged} hour${entry.hoursLogged !== 1 ? 's' : ''}` : '';
+        const statsText = [lessonText, hourText].filter(Boolean).join(' · ') || 'No lessons or hours logged';
+        return `
+          <div class="log-subject-row">
+            <div class="log-subject-name">${subjectName}</div>
+            <div class="log-subject-stats">${statsText}</div>
+            <label class="log-notes-label">Notes</label>
+            <input class="log-notes-input" data-notes-id="${log.id}" data-subject-id="${entry.subjectId}" value="${(entry.notes || '').replace(/"/g, '&quot;')}" />
+          </div>
+        `;
+      }).join('');
+
+      bodyContent = `
+        ${entries}
+        <label class="log-notes-label">This week's glow</label>
+        <input class="log-notes-input" data-glow-id="${log.id}" value="${(log.glow || '').replace(/"/g, '&quot;')}" />
+        <button class="btn-save-log" data-save-id="${log.id}">Save changes</button>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="log-header" data-toggle-id="${log.id}">
+        <div>
+          <div class="log-week">Week ${log.weekNumber}</div>
+          <div class="log-dates">${dateStr} · ${typeLabel}</div>
+        </div>
+        <i class="ti ti-chevron-down chevron" id="chevron-${log.id}" style="color:var(--color-text-secondary);font-size:16px"></i>
+      </div>
+      <div class="log-body" id="log-body-${log.id}">
+        ${bodyContent}
+      </div>
+    `;
+
+    list.appendChild(card);
+  });
+
+  // Toggle expand/collapse
+  list.querySelectorAll('[data-toggle-id]').forEach(header => {
+    header.addEventListener('click', () => {
+      const id = header.dataset.toggleId;
+      const body = document.getElementById('log-body-' + id);
+      const chevron = document.getElementById('chevron-' + id);
+      const isOpen = body.classList.toggle('open');
+      chevron.className = isOpen ? 'ti ti-chevron-up chevron' : 'ti ti-chevron-down chevron';
+    });
+  });
+
+  // Save handlers
+  list.querySelectorAll('[data-save-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const logId = parseInt(btn.dataset.saveId);
+      const family = loadData('family');
+      const child = family.children[currentChildIndex];
+      const activeYear = getActiveYear(child);
+      const log = activeYear.weeklyLogs.find(l => l.id === logId);
+      if (!log) return;
+
+      // Update glow
+      const glowInput = list.querySelector(`[data-glow-id="${logId}"]`);
+      if (glowInput) log.glow = glowInput.value.trim();
+
+      // Update per-subject notes
+      list.querySelectorAll(`[data-notes-id="${logId}"]`).forEach(input => {
+        const subjectId = parseInt(input.dataset.subjectId);
+        const entry = log.subjectEntries.find(e => e.subjectId === subjectId);
+        if (entry) entry.notes = input.value.trim();
+      });
+
+      family.children[currentChildIndex] = child;
+      await saveData('family', family);
+
+      btn.textContent = 'Saved ✓';
+      setTimeout(() => { btn.textContent = 'Save changes'; }, 1500);
+
+      renderDashboard();
+    });
+  });
+}
