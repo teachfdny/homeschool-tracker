@@ -831,10 +831,20 @@ document.getElementById('btn-save-school-week').addEventListener('click', () => 
   const family = loadData('family');
   const child = family.children[currentChildIndex];
   const activeYear = getActiveYear(child);
-  const glow = document.getElementById('school-glow-input').value.trim();
+  const glowInput = document.getElementById('school-glow-input').value.trim();
 
   const subjects = getSubjects(child);
-  const subjectEntries = [];
+
+  const existingIndex = activeYear.weeklyLogs.findIndex(l => l.weekNumber === currentWeekNumber);
+  const existingLog = existingIndex !== -1 ? activeYear.weeklyLogs[existingIndex] : null;
+  const existingEntries = existingLog ? (existingLog.subjectEntries || []) : [];
+  const existingBooks = existingLog ? (existingLog.books || []) : [];
+  const existingUnitStudies = existingLog ? (existingLog.unitStudies || []) : [];
+
+  const entryMap = {};
+  existingEntries.forEach(entry => {
+    entryMap[entry.subjectId] = { ...entry };
+  });
 
   subjects.forEach(subject => {
     const lessonsEl = document.getElementById('lessons-' + subject.id);
@@ -846,27 +856,49 @@ document.getElementById('btn-save-school-week').addEventListener('click', () => 
     const notes = notesEl?.value.trim() || '';
 
     if (lessons > 0 || hours > 0 || notes) {
-      subjectEntries.push({ subjectId: subject.id, lessonsCompleted: lessons, hoursLogged: hours, notes });
       const subjectIndex = activeYear.subjects.findIndex(s => s.id === subject.id);
+      const previous = entryMap[subject.id];
+
       if (subjectIndex !== -1) {
+        if (previous) {
+          activeYear.subjects[subjectIndex].lessonsCompleted -= previous.lessonsCompleted || 0;
+          activeYear.subjects[subjectIndex].hoursLogged -= previous.hoursLogged || 0;
+        }
         activeYear.subjects[subjectIndex].lessonsCompleted += lessons;
         activeYear.subjects[subjectIndex].hoursLogged += hours;
+
+        if (activeYear.subjects[subjectIndex].lessonsCompleted < 0) activeYear.subjects[subjectIndex].lessonsCompleted = 0;
+        if (activeYear.subjects[subjectIndex].hoursLogged < 0) activeYear.subjects[subjectIndex].hoursLogged = 0;
       }
+
+      entryMap[subject.id] = { subjectId: subject.id, lessonsCompleted: lessons, hoursLogged: hours, notes };
     }
+    // If nothing entered this time, leave any existing entry for this subject untouched
   });
 
- activeYear.weeklyLogs.push({
-    id: Date.now(),
+  const mergedEntries = Object.values(entryMap);
+  const finalGlow = glowInput || (existingLog ? existingLog.glow : '') || '';
+  const mergedBooks = [...existingBooks, ...schoolBooks];
+  const mergedUnitStudies = [...existingUnitStudies, ...collectUnitStudyData('school')];
+
+  const logData = {
+    id: existingLog ? existingLog.id : Date.now(),
     weekNumber: currentWeekNumber,
     startDate: currentWeekStartDate.toISOString(),
     logType: 'school',
-    subjectEntries,
-    books: [...schoolBooks],
-    unitStudies: collectUnitStudyData('school'),
-    glow,
+    subjectEntries: mergedEntries,
+    books: mergedBooks,
+    unitStudies: mergedUnitStudies,
+    glow: finalGlow,
     experienceTags: [],
-    createdAt: new Date().toISOString()
-  });
+    createdAt: existingLog ? existingLog.createdAt : new Date().toISOString()
+  };
+
+  if (existingIndex !== -1) {
+    activeYear.weeklyLogs[existingIndex] = logData;
+  } else {
+    activeYear.weeklyLogs.push(logData);
+  }
 
   family.children[currentChildIndex] = child;
   saveData('family', family);
@@ -875,6 +907,7 @@ document.getElementById('btn-save-school-week').addEventListener('click', () => 
   renderDashboard();
   showScreen('screen-dashboard');
 });
+
 document.querySelectorAll('.exp-tag').forEach(tag => {
   tag.addEventListener('click', () => {
     tag.classList.toggle('selected');
