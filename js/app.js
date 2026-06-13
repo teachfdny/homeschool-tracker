@@ -934,25 +934,43 @@ document.getElementById('btn-adventure-tags-continue').addEventListener('click',
 
 document.getElementById('btn-save-adventure-week').addEventListener('click', () => {
   const adventureDesc = document.getElementById('adventure-glow-input').value.trim();
-  const glow = document.getElementById('adventure-glow-input-final').value.trim();
+  const glowInput = document.getElementById('adventure-glow-input-final').value.trim();
   if (!adventureDesc) { alert('Please describe what you did this week before saving.'); return; }
 
   const family = loadData('family');
   const child = family.children[currentChildIndex];
   const activeYear = getActiveYear(child);
 
- activeYear.weeklyLogs.push({
-    id: Date.now(),
+  const existingIndex = activeYear.weeklyLogs.findIndex(l => l.weekNumber === currentWeekNumber);
+  const existingLog = existingIndex !== -1 ? activeYear.weeklyLogs[existingIndex] : null;
+  const existingBooks = existingLog ? (existingLog.books || []) : [];
+  const existingUnitStudies = existingLog ? (existingLog.unitStudies || []) : [];
+  const existingTags = existingLog ? (existingLog.experienceTags || []) : [];
+  const existingSubjectEntries = existingLog ? (existingLog.subjectEntries || []) : [];
+
+  const mergedBooks = [...existingBooks, ...adventureBooks];
+  const mergedUnitStudies = [...existingUnitStudies, ...collectUnitStudyData('adventure')];
+  const mergedTags = Array.from(new Set([...existingTags, ...selectedExperienceTags]));
+  const finalGlow = glowInput || (existingLog ? existingLog.glow : '') || '';
+
+  const logData = {
+    id: existingLog ? existingLog.id : Date.now(),
     weekNumber: currentWeekNumber,
     startDate: currentWeekStartDate.toISOString(),
     logType: 'adventure',
-    subjectEntries: [],
-    books: [...adventureBooks],
-    unitStudies: collectUnitStudyData('adventure'),
-    glow,
-    experienceTags: selectedExperienceTags,
-    createdAt: new Date().toISOString()
-  });
+    subjectEntries: existingSubjectEntries,
+    books: mergedBooks,
+    unitStudies: mergedUnitStudies,
+    glow: finalGlow,
+    experienceTags: mergedTags,
+    createdAt: existingLog ? existingLog.createdAt : new Date().toISOString()
+  };
+
+  if (existingIndex !== -1) {
+    activeYear.weeklyLogs[existingIndex] = logData;
+  } else {
+    activeYear.weeklyLogs.push(logData);
+  }
 
   family.children[currentChildIndex] = child;
   saveData('family', family);
