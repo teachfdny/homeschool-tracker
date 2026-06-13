@@ -793,8 +793,8 @@ function renderSchoolLogEntries(child) {
             <input type="number" min="0" placeholder="0" id="lessons-${subject.id}" />
           </div>
           <div class="subject-log-field">
-            <label>Hours (optional)</label>
-            <input type="number" min="0" step="0.5" placeholder="0" id="hours-${subject.id}" />
+            <label>Lessons completed <span class="log-progress-hint">(${subject.lessonsCompleted} of ${subject.totalLessons} so far)</span></label>
+            <input type="number" min="0" placeholder="0" id="lessons-${subject.id}" />
           </div>
         </div>
         <div class="subject-log-wide">
