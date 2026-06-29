@@ -1196,8 +1196,8 @@ function openSettings() {
   const family = loadData('family');
   if (!family) return;
 
-  document.getElementById('settings-official-name').textContent = family.officialName;
-  document.getElementById('settings-nickname').textContent = family.nickname;
+  document.getElementById('settings-edit-official-name').value = family.officialName;
+document.getElementById('settings-edit-nickname').value = family.nickname;
   document.getElementById('settings-year-start').textContent =
     family.schoolYearStart.charAt(0).toUpperCase() + family.schoolYearStart.slice(1);
 
