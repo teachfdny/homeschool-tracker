@@ -1163,24 +1163,6 @@ body {
   border-bottom: none;
 }
 
-.info-edit-input {
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  text-align: right;
-  padding: 2px 0;
-  flex: 1;
-  outline: none;
-  font-family: inherit;
-}
-
-.info-edit-input:focus {
-  border-bottom-color: var(--color-primary);
-}
-
 .info-label {
   font-size: 13px;
   color: var(--color-text-secondary);
