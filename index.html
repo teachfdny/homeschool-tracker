@@ -150,36 +150,35 @@
         <option value="december">December</option>
       </select>
     </div>
+
+   <button class="btn-primary" id="btn-onboarding-continue">Continue</button>
   </div>
 
   <!-- ONBOARDING CONFIRM SCREEN -->
   <div id="screen-onboarding-confirm" class="screen">
     <div class="screen-header">
       <h1>Double check before you continue</h1>
-      <p>Make sure everything looks right before continuing.</p>
+      <p>Your official name and nickname can't be changed later — make sure they're right.</p>
     </div>
 
-<div class="info-card">
-  <div class="info-row">
-    <div class="info-label">Official name</div>
-    <div class="info-value" id="confirm-official-name"></div>
-  </div>
-  <div class="info-row">
-    <div class="info-label">Nickname</div>
-    <div class="info-value" id="confirm-nickname"></div>
-  </div>
-  <div class="info-row">
-    <div class="info-label">School year starts</div>
-    <div class="info-value" id="confirm-year-start"></div>
-  </div>
-</div>
-    
-  <button class="btn-secondary" id="btn-save-school-info" style="margin-top:12px">Save school info</button>
-</div>
+    <div class="info-card">
+      <div class="info-row">
+        <div class="info-label">Official school name</div>
+        <div class="info-value" id="confirm-official-name"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Homeschool nickname</div>
+        <div class="info-value" id="confirm-nickname"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">School year starts</div>
+        <div class="info-value" id="confirm-year-start"></div>
+      </div>
+    </div>
 
     <div class="info-box" style="margin-top:14px">
       <i class="ti ti-info-circle"></i>
-      <span>The official name is used on transcripts, and the nickname appears on your Wrapped and throughout the app.</span>
+      <span>These names are permanent. The official name is used on transcripts, and the nickname appears on your Wrapped and throughout the app.</span>
     </div>
 
     <button class="btn-primary" id="btn-confirm-onboarding">Looks good, continue</button>
@@ -321,21 +320,20 @@
     </div>
 
     <div class="section-label">School info</div>
-  <div class="info-card">
-  <div class="info-row">
-    <div class="info-label">Official name</div>
-    <input class="info-edit-input" id="settings-edit-official-name" type="text" />
-  </div>
-  <div class="info-row">
-    <div class="info-label">Nickname</div>
-    <input class="info-edit-input" id="settings-edit-nickname" type="text" />
-  </div>
-  <div class="info-row">
-    <div class="info-label">School year starts</div>
-    <div class="info-value" id="settings-year-start"></div>
-  </div>
-  <button class="btn-primary" id="btn-save-school-info" style="margin-top:12px;width:100%">Save school info</button>
-</div>
+    <div class="info-card">
+      <div class="info-row">
+        <div class="info-label">Official name</div>
+        <div class="info-value" id="settings-official-name"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Nickname</div>
+        <div class="info-value" id="settings-nickname"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">School year starts</div>
+        <div class="info-value" id="settings-year-start"></div>
+      </div>
+    </div>
 
     <div class="divider"></div>
     <div class="section-label">Quarterly reporting</div>
