@@ -1238,6 +1238,28 @@ document.getElementById('btn-back-from-settings').addEventListener('click', () =
   showScreen('screen-dashboard');
 });
 
+document.getElementById('btn-save-school-info').addEventListener('click', async () => {
+  const officialName = document.getElementById('settings-edit-official-name').value.trim();
+  const nickname = document.getElementById('settings-edit-nickname').value.trim();
+
+  if (!officialName || !nickname) {
+    alert('Both school name and nickname are required.');
+    return;
+  }
+
+  const family = loadData('family');
+  family.officialName = officialName;
+  family.nickname = nickname;
+  await saveData('family', family);
+
+  // Update the dashboard nickname display immediately
+  document.getElementById('display-nickname').textContent = '✦ ' + nickname;
+
+  const btn = document.getElementById('btn-save-school-info');
+  btn.textContent = 'Saved ✓';
+  setTimeout(() => { btn.textContent = 'Save school info'; }, 1500);
+});
+
 document.getElementById('btn-sign-out').addEventListener('click', async () => {
   if (confirm('Sign out of your account?')) {
     await logOut();
