@@ -1196,9 +1196,8 @@ function openSettings() {
   const family = loadData('family');
   if (!family) return;
 
-  // Changed: populate inputs instead of text
-  document.getElementById('settings-edit-official-name').value = family.officialName;
-  document.getElementById('settings-edit-nickname').value = family.nickname;
+  document.getElementById('settings-official-name').textContent = family.officialName;
+  document.getElementById('settings-nickname').textContent = family.nickname;
   document.getElementById('settings-year-start').textContent =
     family.schoolYearStart.charAt(0).toUpperCase() + family.schoolYearStart.slice(1);
 
@@ -1237,28 +1236,6 @@ document.querySelector('.icon-btn').addEventListener('click', openSettings);
 // Back from settings
 document.getElementById('btn-back-from-settings').addEventListener('click', () => {
   showScreen('screen-dashboard');
-});
-
-document.getElementById('btn-save-school-info').addEventListener('click', async () => {
-  const officialName = document.getElementById('settings-edit-official-name').value.trim();
-  const nickname = document.getElementById('settings-edit-nickname').value.trim();
-
-  if (!officialName || !nickname) {
-    alert('Both school name and nickname are required.');
-    return;
-  }
-
-  const family = loadData('family');
-  family.officialName = officialName;
-  family.nickname = nickname;
-  await saveData('family', family);
-
-  // Update the dashboard nickname display immediately
-  document.getElementById('display-nickname').textContent = '✦ ' + nickname;
-
-  const btn = document.getElementById('btn-save-school-info');
-  btn.textContent = 'Saved ✓';
-  setTimeout(() => { btn.textContent = 'Save school info'; }, 1500);
 });
 
 document.getElementById('btn-sign-out').addEventListener('click', async () => {
@@ -2337,8 +2314,8 @@ document.querySelector('.icon-btn').addEventListener('click', () => {
 
   const officialName = document.getElementById('settings-official-name');
   if (officialName) {
-    document.getElementById('settings-edit-official-name').value = family.officialName;
-    document.getElementById('settings-edit-nickname').value = family.nickname;
+    document.getElementById('settings-official-name').textContent = family.officialName;
+    document.getElementById('settings-nickname').textContent = family.nickname;
     document.getElementById('settings-year-start').textContent =
       family.schoolYearStart.charAt(0).toUpperCase() + family.schoolYearStart.slice(1);
 
