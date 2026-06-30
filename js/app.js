@@ -800,7 +800,7 @@ function renderSchoolLogEntries(child) {
         </div>
         <div class="subject-log-wide">
           <label>Notes</label>
-          <input type="text" placeholder="Content covered? e.g. Volcanoes, fractions, homophones" id="notes-${subject.id}" />
+          <input type="text" placeholder="Content covered? e.g. Volcanoes, fractions, homophones, WWI" id="notes-${subject.id}" />
         </div>
       </div>
       <div class="subject-collapsed-hint" id="hint-${subject.id}">Tap to log this week's work</div>
