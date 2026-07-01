@@ -1028,7 +1028,12 @@ function openEditSubject(subjectId) {
   document.getElementById('edit-subject-curriculum').value = subject.curriculum;
   document.getElementById('edit-subject-lessons').value = subject.totalLessons;
   document.getElementById('edit-subject-duration').value = subject.duration;
-
+  document.getElementById('edit-subject-credits').value = subject.credits || '';
+editGpaLevel = subject.gpaLevel || 'Regular';
+document.querySelectorAll('#edit-credit-options .gpa-chip').forEach(c => c.classList.remove('selected'));
+document.getElementById('edit-gpa-' + editGpaLevel.toLowerCase()).classList.add('selected');
+  
+  
   const toggle = document.getElementById('edit-credit-toggle');
   const creditOptions = document.getElementById('edit-credit-options');
   if (subject.creditBearing) {
