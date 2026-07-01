@@ -621,6 +621,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // =====================
 let selectedCreditMethod = 'lessons';
 let creditBearing = false;
+let selectedGpaLevel = 'Regular';
+let editGpaLevel = 'Regular';
 
 document.getElementById('btn-add-subject').addEventListener('click', () => {
   // Remove any existing confirm message
