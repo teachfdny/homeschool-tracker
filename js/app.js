@@ -714,6 +714,10 @@ document.getElementById('btn-save-subject').addEventListener('click', async () =
   document.getElementById('subject-curriculum').value = '';
   document.getElementById('subject-lessons').value = '';
   document.getElementById('subject-duration').value = 'full';
+  document.getElementById('subject-credits').value = '';
+selectedGpaLevel = 'Regular';
+document.querySelectorAll('#credit-options .gpa-chip').forEach(c => c.classList.remove('selected'));
+document.getElementById('gpa-regular').classList.add('selected');
   document.getElementById('subject-type').value = 'core';
   creditBearing = false;
   selectedCreditMethod = 'lessons';
