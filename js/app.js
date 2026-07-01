@@ -1379,7 +1379,9 @@ function updateSyncSelectedCount() {
 document.getElementById('btn-sync-selected').addEventListener('click', async () => {
   console.log('sync button clicked');
   try {
+    console.log('inside try');
     const family = loadData('family');
+    console.log('family:', family);
     const child = family.children[currentChildIndex];
     const activeYear = getActiveYear(child);
     const rows = document.querySelectorAll('#sync-subject-list .sync-subject-row');
