@@ -90,5 +90,6 @@ export {
   saveUserData,
   loadUserData,
   subscribeToUserData,
-  onAuthStateChanged
+  onAuthStateChanged,
+  saveSyncSnapshot
 };
