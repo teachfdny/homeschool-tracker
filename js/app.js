@@ -1071,6 +1071,9 @@ function attachSubjectCardListeners() {
 }
 
 document.getElementById('btn-back-from-edit-subject').addEventListener('click', () => showScreen('screen-dashboard'));
+document.getElementById('btn-back-from-sync').addEventListener('click', () => {
+  showScreen('screen-dashboard');
+});
 
 document.getElementById('edit-credit-toggle').addEventListener('click', () => {
   editCreditBearing = !editCreditBearing;
