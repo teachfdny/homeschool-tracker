@@ -1306,7 +1306,116 @@ document.getElementById('btn-sign-out').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-open-sync').addEventListener('click', () => {
+  openSyncScreen();
+});
+
+const GRADE_OPTIONS = ['Not entered','A','A-','B+','B','B-','C+','C','C-','D','F','P'];
+
+function openSyncScreen() {
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+
+  document.getElementById('sync-screen-sub').textContent =
+    child.grade + ' grade \u00b7 ' + activeYear.label + ' school year';
+
+  document.getElementById('sync-last-synced').textContent = activeYear.lastSyncedAt
+    ? 'Last synced ' + new Date(activeYear.lastSyncedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : 'Not yet synced';
+
+  renderSyncSubjectList(activeYear);
   showScreen('screen-sync-transcript');
+}
+
+function renderSyncSubjectList(activeYear) {
+  const creditSubjects = activeYear.subjects.filter(s => s.creditBearing && !s.archived);
+  const list = document.getElementById('sync-subject-list');
+  list.innerHTML = '';
+
+  if (creditSubjects.length === 0) {
+    list.innerHTML = '<p style="font-size:14px;color:var(--color-text-secondary)">No credit-bearing subjects yet.</p>';
+    updateSyncSelectedCount();
+    return;
+  }
+
+  creditSubjects.forEach(subject => {
+    const row = document.createElement('div');
+    row.className = 'sync-subject-row';
+    row.dataset.id = subject.id;
+
+    const gradeOptionsHTML = GRADE_OPTIONS.map(g =>
+      '<option value="' + g + '"' + (g === 'Not entered' ? ' selected' : '') + '>' + g + '</option>'
+    ).join('');
+
+    row.innerHTML = `
+      <div class="sync-row-top">
+        <input type="checkbox" class="sync-checkbox" checked />
+        <div class="sync-row-name">
+          <div>${subject.name}</div>
+          <div class="sync-row-meta">${subject.gpaLevel || 'Regular'} \u00b7 ${subject.credits || '?'} credit${subject.credits === 1 ? '' : 's'}</div>
+        </div>
+      </div>
+      <div class="sync-row-grade">
+        <label>Grade</label>
+        <select class="sync-grade-select">${gradeOptionsHTML}</select>
+      </div>
+    `;
+
+    row.querySelector('.sync-checkbox').addEventListener('change', updateSyncSelectedCount);
+    list.appendChild(row);
+  });
+
+  updateSyncSelectedCount();
+}
+
+function updateSyncSelectedCount() {
+  const total = document.querySelectorAll('#sync-subject-list .sync-checkbox').length;
+  const selected = document.querySelectorAll('#sync-subject-list .sync-checkbox:checked').length;
+  document.getElementById('sync-selected-count').textContent =
+    selected + ' of ' + total + ' selected';
+}
+
+document.getElementById('btn-sync-selected').addEventListener('click', async () => {
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+
+  const rows = document.querySelectorAll('#sync-subject-list .sync-subject-row');
+  const payload = [];
+
+  rows.forEach(row => {
+    const checkbox = row.querySelector('.sync-checkbox');
+    if (!checkbox.checked) return;
+
+    const subjectId = parseInt(row.dataset.id);
+    const subject = activeYear.subjects.find(s => s.id === subjectId);
+    if (!subject) return;
+
+    const gradeValue = row.querySelector('.sync-grade-select').value;
+
+    payload.push({
+      id: subject.id,
+      name: subject.name,
+      credits: subject.credits,
+      grade: gradeValue === 'Not entered' ? null : gradeValue,
+      type: subject.gpaLevel || 'Regular',
+      gpaPoints: null
+    });
+  });
+
+  if (payload.length === 0) {
+    alert('No subjects selected to sync.');
+    return;
+  }
+
+  console.log('SYNC PAYLOAD (stub - not yet sent anywhere):', child.grade, payload);
+  alert('Stub sync: ' + payload.length + ' subject(s) would be sent. Check console for payload.');
+
+  activeYear.lastSyncedAt = new Date().toISOString();
+  family.children[currentChildIndex] = child;
+  await saveData('family', family);
+
+  openSyncScreen();
 });
 
 // Quarterly toggle
