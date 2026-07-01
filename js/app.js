@@ -686,7 +686,8 @@ document.getElementById('btn-save-subject').addEventListener('click', async () =
   const curriculum = document.getElementById('subject-curriculum').value.trim();
   const totalLessons = parseInt(document.getElementById('subject-lessons').value);
   const duration = document.getElementById('subject-duration').value;
-
+  const credits = parseFloat(document.getElementById('subject-credits').value) || null;
+  
   if (!name) { alert('Please enter a subject name.'); return; }
   if (!curriculum) { alert('Please enter a curriculum or resource name.'); return; }
   if (!totalLessons || totalLessons < 1) { alert('Please enter the total number of lessons.'); return; }
