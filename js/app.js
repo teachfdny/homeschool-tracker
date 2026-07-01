@@ -1123,7 +1123,9 @@ document.getElementById('btn-save-edit-subject').addEventListener('click', async
     totalLessons: Math.max(totalLessons, existing.lessonsCompleted),
     duration,
     creditBearing: editCreditBearing,
-    creditMethod: editCreditMethod
+    creditMethod: editCreditMethod,
+    credits: parseFloat(document.getElementById('edit-subject-credits').value) || null,
+  gpaLevel: editGpaLevel
   };
 
   family.children[currentChildIndex] = child;
