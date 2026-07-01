@@ -1389,14 +1389,15 @@ document.getElementById('btn-sync-selected').addEventListener('click', async () 
     const rows = document.querySelectorAll('#sync-subject-list .sync-subject-row');
     console.log('rows:', rows.length);
     const payload = [];
-
     rows.forEach(row => {
       const checkbox = row.querySelector('.sync-checkbox');
+      console.log('checkbox checked:', checkbox.checked);
       if (!checkbox.checked) return;
       const subjectId = parseInt(row.dataset.id);
       const subject = activeYear.subjects.find(s => s.id === subjectId);
-      if (!subject) return;
+      console.log('subject found:', subject);
       const gradeValue = row.querySelector('.sync-grade-select').value;
+      console.log('gradeValue:', gradeValue);
       payload.push({
         id: subject.id,
         name: subject.name,
@@ -1406,6 +1407,7 @@ document.getElementById('btn-sync-selected').addEventListener('click', async () 
         gpaPoints: null
       });
     });
+    console.log('payload:', payload);
 
     if (payload.length === 0) {
       alert('No subjects selected to sync.');
