@@ -664,6 +664,22 @@ document.querySelectorAll('.credit-method').forEach(method => {
   });
 });
 
+document.querySelectorAll('#credit-options .gpa-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#credit-options .gpa-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    selectedGpaLevel = chip.dataset.level;
+  });
+});
+
+document.querySelectorAll('#edit-credit-options .gpa-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#edit-credit-options .gpa-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    editGpaLevel = chip.dataset.level;
+  });
+});
+
 document.getElementById('btn-save-subject').addEventListener('click', async () => {
   const name = document.getElementById('subject-name').value.trim();
   const type = document.getElementById('subject-type').value;
