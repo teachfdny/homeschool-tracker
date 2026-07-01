@@ -11,7 +11,8 @@ import {
   logOut,
   saveUserData,
   loadUserData,
-  onAuthStateChanged
+  onAuthStateChanged,
+  saveSyncSnapshot
 } from './firebase.js';
 
 // =====================
