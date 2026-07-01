@@ -1408,14 +1408,26 @@ document.getElementById('btn-sync-selected').addEventListener('click', async () 
     return;
   }
 
-  console.log('SYNC PAYLOAD (stub - not yet sent anywhere):', child.grade, payload);
-  alert('Stub sync: ' + payload.length + ' subject(s) would be sent. Check console for payload.');
+  try {
+    const snapshot = {
+      childId: child.id,
+      childName: child.name,
+      grade: child.grade,
+      syncedAt: new Date().toISOString(),
+      courses: payload
+    };
 
-  activeYear.lastSyncedAt = new Date().toISOString();
-  family.children[currentChildIndex] = child;
-  await saveData('family', family);
+    await saveSyncSnapshot(currentUser.uid, String(child.id), snapshot);
 
-  openSyncScreen();
+    activeYear.lastSyncedAt = new Date().toISOString();
+    family.children[currentChildIndex] = child;
+    await saveData('family', family);
+
+    openSyncScreen();
+  } catch (err) {
+    console.error('Sync failed:', err);
+    alert('❌ Sync failed. Please try again.\n\n' + err.message);
+  }
 });
 
 // Quarterly toggle
