@@ -1377,27 +1377,21 @@ function updateSyncSelectedCount() {
 }
 
 document.getElementById('btn-sync-selected').addEventListener('click', async () => {
-  console.log('sync button clicked');
-  try {
-   console.log('inside try');
-    const family = loadData('family');
-    console.log('family:', family);
-    const child = family.children[currentChildIndex];
-    console.log('child:', child);
-    const activeYear = getActiveYear(child);
-    console.log('activeYear:', activeYear);
-    const rows = document.querySelectorAll('#sync-subject-list .sync-subject-row');
-    console.log('rows:', rows.length);
-    const payload = [];
+    try {
+       const family = loadData('family');
+      const child = family.children[currentChildIndex];
+       const activeYear = getActiveYear(child);
+        const rows = document.querySelectorAll('#sync-subject-list .sync-subject-row');
+        const payload = [];
     rows.forEach(row => {
       const checkbox = row.querySelector('.sync-checkbox');
-      console.log('checkbox checked:', checkbox.checked);
+  
       if (!checkbox.checked) return;
       const subjectId = parseInt(row.dataset.id);
       const subject = activeYear.subjects.find(s => s.id === subjectId);
-      console.log('subject found:', subject);
+      
       const gradeValue = row.querySelector('.sync-grade-select').value;
-      console.log('gradeValue:', gradeValue);
+     
       payload.push({
         id: subject.id,
         name: subject.name,
@@ -1407,14 +1401,13 @@ document.getElementById('btn-sync-selected').addEventListener('click', async () 
         gpaPoints: null
       });
     });
-    console.log('payload:', payload);
-console.log('payload:', payload);
-    console.log('currentUser:', currentUser);
+   
+
     if (payload.length === 0) {
       alert('No subjects selected to sync.');
       return;
     }
-console.log('about to call saveSyncSnapshot');
+
     const snapshot = {
       childId: child.id,
       childName: child.name,
