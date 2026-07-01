@@ -2905,3 +2905,26 @@ body {
   color: var(--color-text-secondary);
   margin-bottom: 12px;
 }
+.gpa-chip-row {
+  display: flex;
+  gap: 8px;
+}
+
+.gpa-chip {
+  flex: 1;
+  text-align: center;
+  padding: 9px 4px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.gpa-chip.selected {
+  border-color: #5B4FE0;
+  background: #EEECFC;
+  color: #5B4FE0;
+  font-weight: 600;
+}
