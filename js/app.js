@@ -1303,6 +1303,10 @@ document.getElementById('btn-sign-out').addEventListener('click', async () => {
   }
 });
 
+document.getElementById('btn-open-sync').addEventListener('click', () => {
+  showScreen('screen-sync-transcript');
+});
+
 // Quarterly toggle
 document.getElementById('quarterly-toggle').addEventListener('click', () => {
   quarteringEnabled = !quarteringEnabled;
