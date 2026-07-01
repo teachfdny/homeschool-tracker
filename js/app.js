@@ -1408,7 +1408,8 @@ document.getElementById('btn-sync-selected').addEventListener('click', async () 
       });
     });
     console.log('payload:', payload);
-
+console.log('payload:', payload);
+    console.log('currentUser:', currentUser);
     if (payload.length === 0) {
       alert('No subjects selected to sync.');
       return;
