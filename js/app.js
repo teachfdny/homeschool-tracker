@@ -1414,7 +1414,7 @@ console.log('payload:', payload);
       alert('No subjects selected to sync.');
       return;
     }
-
+console.log('about to call saveSyncSnapshot');
     const snapshot = {
       childId: child.id,
       childName: child.name,
