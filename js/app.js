@@ -1377,6 +1377,7 @@ function updateSyncSelectedCount() {
 }
 
 document.getElementById('btn-sync-selected').addEventListener('click', async () => {
+  console.log('sync button clicked');
   try {
     const family = loadData('family');
     const child = family.children[currentChildIndex];
