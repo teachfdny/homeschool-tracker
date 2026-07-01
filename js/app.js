@@ -1237,6 +1237,8 @@ document.getElementById('settings-edit-nickname').value = family.nickname;
 
   const child = family.children[currentChildIndex];
   const activeYear = getActiveYear(child);
+  const hasCreditBearing = getSubjects(child).some(s => s.creditBearing);
+  document.getElementById('sync-section').style.display = hasCreditBearing ? 'block' : 'none';
   const quarters = activeYear?.quarterSettings;
 
   quarteringEnabled = activeYear?.quarteringEnabled || false;
