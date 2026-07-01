@@ -1424,7 +1424,7 @@ console.log('about to call saveSyncSnapshot');
     };
 
     await saveSyncSnapshot(currentUser.uid, String(child.id), snapshot);
-
+console.log('saveSyncSnapshot complete');
     activeYear.lastSyncedAt = new Date().toISOString();
     family.children[currentChildIndex] = child;
     await saveData('family', family);
