@@ -1424,7 +1424,7 @@ console.log('about to call saveSyncSnapshot');
     };
 
     await saveSyncSnapshot(currentUser.uid, String(child.id), snapshot);
-console.log('saveSyncSnapshot complete');
+    alert('✅ Courses synced successfully! Open the Transcript Generator and click "Import from Record Keeper" to pull them in.');
     activeYear.lastSyncedAt = new Date().toISOString();
     family.children[currentChildIndex] = child;
     await saveData('family', family);
