@@ -1379,12 +1379,15 @@ function updateSyncSelectedCount() {
 document.getElementById('btn-sync-selected').addEventListener('click', async () => {
   console.log('sync button clicked');
   try {
-    console.log('inside try');
+   console.log('inside try');
     const family = loadData('family');
     console.log('family:', family);
     const child = family.children[currentChildIndex];
+    console.log('child:', child);
     const activeYear = getActiveYear(child);
+    console.log('activeYear:', activeYear);
     const rows = document.querySelectorAll('#sync-subject-list .sync-subject-row');
+    console.log('rows:', rows.length);
     const payload = [];
 
     rows.forEach(row => {
