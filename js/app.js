@@ -700,6 +700,7 @@ document.getElementById('btn-save-subject').addEventListener('click', async () =
     id: Date.now(),
     name, type, curriculum, totalLessons, duration,
     creditBearing, creditMethod: selectedCreditMethod,
+    credits, gpaLevel: selectedGpaLevel,
     lessonsCompleted: 0, hoursLogged: 0,
     archived: false,
     createdAt: new Date().toISOString()
