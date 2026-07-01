@@ -1377,39 +1377,35 @@ function updateSyncSelectedCount() {
 }
 
 document.getElementById('btn-sync-selected').addEventListener('click', async () => {
-  const family = loadData('family');
-  const child = family.children[currentChildIndex];
-  const activeYear = getActiveYear(child);
-
-  const rows = document.querySelectorAll('#sync-subject-list .sync-subject-row');
-  const payload = [];
-
-  rows.forEach(row => {
-    const checkbox = row.querySelector('.sync-checkbox');
-    if (!checkbox.checked) return;
-
-    const subjectId = parseInt(row.dataset.id);
-    const subject = activeYear.subjects.find(s => s.id === subjectId);
-    if (!subject) return;
-
-    const gradeValue = row.querySelector('.sync-grade-select').value;
-
-    payload.push({
-      id: subject.id,
-      name: subject.name,
-      credits: subject.credits,
-      grade: gradeValue === 'Not entered' ? null : gradeValue,
-      type: subject.gpaLevel || 'Regular',
-      gpaPoints: null
-    });
-  });
-
-  if (payload.length === 0) {
-    alert('No subjects selected to sync.');
-    return;
-  }
-
   try {
+    const family = loadData('family');
+    const child = family.children[currentChildIndex];
+    const activeYear = getActiveYear(child);
+    const rows = document.querySelectorAll('#sync-subject-list .sync-subject-row');
+    const payload = [];
+
+    rows.forEach(row => {
+      const checkbox = row.querySelector('.sync-checkbox');
+      if (!checkbox.checked) return;
+      const subjectId = parseInt(row.dataset.id);
+      const subject = activeYear.subjects.find(s => s.id === subjectId);
+      if (!subject) return;
+      const gradeValue = row.querySelector('.sync-grade-select').value;
+      payload.push({
+        id: subject.id,
+        name: subject.name,
+        credits: subject.credits,
+        grade: gradeValue === 'Not entered' ? null : gradeValue,
+        type: subject.gpaLevel || 'Regular',
+        gpaPoints: null
+      });
+    });
+
+    if (payload.length === 0) {
+      alert('No subjects selected to sync.');
+      return;
+    }
+
     const snapshot = {
       childId: child.id,
       childName: child.name,
