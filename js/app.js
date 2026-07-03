@@ -2345,6 +2345,110 @@ function getAuthErrorMessage(code) {
 }
 
 // =====================
+// SUBSCRIBE SCREEN
+// =====================
+let selectedPriceId = 'price_1TlJT3IQrVlvTmdBQa05aajd'; // default: founding member
+
+const FOUNDING_MEMBER_CAP = 50;
+const FOUNDING_MEMBER_COUNT_THRESHOLD = 30;
+
+async function loadFoundingMemberCount() {
+  try {
+    const { db } = await import('./firebase.js');
+    const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js');
+    const ref = doc(db, 'meta', 'foundingMembers');
+    const snap = await getDoc(ref);
+    return snap.exists() ? (snap.data().count || 0) : 0;
+  } catch (err) {
+    console.error('Could not load founding member count:', err);
+    return 0;
+  }
+}
+
+async function openSubscribeScreen(user) {
+  const emailEl = document.getElementById('subscribe-user-email');
+  if (emailEl) emailEl.textContent = 'Signed in as ' + user.email;
+
+  const count = await loadFoundingMemberCount();
+  const remaining = FOUNDING_MEMBER_CAP - count;
+  const soldOut = remaining <= 0;
+
+  const foundingTier = document.getElementById('tier-founding');
+  const countText = document.getElementById('founding-count-text');
+
+  if (soldOut) {
+    foundingTier.classList.add('soldout');
+    foundingTier.classList.remove('selected');
+    document.getElementById('radio-founding').classList.remove('checked');
+    // Default selection falls to annual
+    selectedPriceId = 'price_1TlJUCIQrVlvTmdBiTFnNw3K';
+    document.getElementById('tier-annual').classList.add('selected');
+    document.getElementById('radio-annual').classList.add('checked');
+  } else {
+    if (remaining <= FOUNDING_MEMBER_COUNT_THRESHOLD) {
+      countText.textContent = remaining + ' spot' + (remaining === 1 ? '' : 's') + ' remaining';
+      countText.style.display = 'block';
+    } else {
+      countText.style.display = 'none';
+    }
+  }
+
+  showScreen('screen-subscribe');
+}
+
+// Tier selection
+document.querySelectorAll('.subscribe-tier').forEach(tier => {
+  tier.addEventListener('click', () => {
+    document.querySelectorAll('.subscribe-tier').forEach(t => {
+      t.classList.remove('selected');
+      t.querySelector('.subscribe-radio').classList.remove('checked');
+    });
+    tier.classList.add('selected');
+    tier.querySelector('.subscribe-radio').classList.add('checked');
+    selectedPriceId = tier.dataset.price;
+  });
+});
+
+// Continue to payment
+document.getElementById('btn-continue-to-payment').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-continue-to-payment');
+  btn.textContent = 'Loading...';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('https://us-central1-ataleofchanges-homeschool.cloudfunctions.net/createCheckoutSession', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        priceId: selectedPriceId,
+        uid: currentUser.uid,
+        email: currentUser.email
+      })
+    });
+
+    const data = await response.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || 'No checkout URL returned');
+    }
+  } catch (err) {
+    console.error('Payment error:', err);
+    alert('❌ Could not start checkout. Please try again.\n\n' + err.message);
+    btn.textContent = 'Continue to payment';
+    btn.disabled = false;
+  }
+});
+
+// Sign out from subscribe screen
+document.getElementById('btn-subscribe-signout').addEventListener('click', async () => {
+  await logOut();
+  appData = null;
+  currentUser = null;
+  showScreen('screen-auth');
+});
+
+// =====================
 // AUTH TABS
 // =====================
 document.getElementById('tab-signin').addEventListener('click', () => {
