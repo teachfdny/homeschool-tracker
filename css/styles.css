@@ -3037,3 +3037,105 @@ body {
 #btn-sync-selected:hover {
   background: #1B5A7E;
 }
+/* =====================
+   SUBSCRIBE SCREEN
+   ===================== */
+.subscribe-tier {
+  border: 1.5px solid var(--color-border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.subscribe-tier.selected {
+  border-color: var(--color-accent);
+  border-width: 2px;
+  background: var(--color-primary-light);
+}
+
+.subscribe-tier.soldout {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.subscribe-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.subscribe-radio.checked {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  position: relative;
+}
+
+.subscribe-radio.checked::after {
+  content: '';
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: white;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.subscribe-tier-body {
+  flex: 1;
+}
+
+.subscribe-tier-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+.subscribe-tier-desc {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.subscribe-founding-badge {
+  display: inline-block;
+  background: #fff3cd;
+  color: #856404;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-bottom: 4px;
+  border: 1px solid #ffc107;
+}
+
+.subscribe-founding-count {
+  font-size: 11px;
+  color: var(--color-accent);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.subscribe-tier-price {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.subscribe-price-amount {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.subscribe-price-period {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
