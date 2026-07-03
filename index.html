@@ -109,6 +109,64 @@
       <button class="btn-primary" id="btn-magic-confirm">Complete sign in</button>
     </div>
   </div>
+
+<!-- SUBSCRIBE SCREEN -->
+<div id="screen-subscribe" class="screen">
+  <div class="auth-container">
+    <div class="auth-hero" style="padding-bottom:16px">
+      <div class="auth-gem">💎</div>
+      <div class="auth-hero-title" style="font-size:22px">Subscribe to the Keeper</div>
+      <div class="auth-hero-desc">Full access to logging, gems, Wrapped, and transcript sync.</div>
+      <div id="subscribe-user-email" style="font-size:12px;color:var(--color-text-secondary);margin-top:4px"></div>
+    </div>
+
+    <div id="tier-founding" class="subscribe-tier selected" data-price="price_1TlJT3IQrVlvTmdBQa05aajd">
+      <div class="subscribe-radio checked" id="radio-founding"></div>
+      <div class="subscribe-tier-body">
+        <div class="subscribe-founding-badge">Founding member</div>
+        <div class="subscribe-tier-name">Annual</div>
+        <div class="subscribe-tier-desc">First 50 members only</div>
+        <div class="subscribe-founding-count" id="founding-count-text" style="display:none"></div>
+      </div>
+      <div class="subscribe-tier-price">
+        <div class="subscribe-price-amount">$19.99</div>
+        <div class="subscribe-price-period">/yr</div>
+      </div>
+    </div>
+
+    <div id="tier-annual" class="subscribe-tier" data-price="price_1TlJUCIQrVlvTmdBiTFnNw3K">
+      <div class="subscribe-radio" id="radio-annual"></div>
+      <div class="subscribe-tier-body">
+        <div class="subscribe-tier-name">Annual</div>
+        <div class="subscribe-tier-desc">Standard pricing</div>
+      </div>
+      <div class="subscribe-tier-price">
+        <div class="subscribe-price-amount">$29.99</div>
+        <div class="subscribe-price-period">/yr</div>
+      </div>
+    </div>
+
+    <div id="tier-monthly" class="subscribe-tier" data-price="price_1TlJVXIQrVlvTmdBgeBFKV6n">
+      <div class="subscribe-radio" id="radio-monthly"></div>
+      <div class="subscribe-tier-body">
+        <div class="subscribe-tier-name">Monthly</div>
+        <div class="subscribe-tier-desc">Cancel anytime</div>
+      </div>
+      <div class="subscribe-tier-price">
+        <div class="subscribe-price-amount">$2.99</div>
+        <div class="subscribe-price-period">/mo</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-continue-to-payment" style="margin-top:8px">Continue to payment</button>
+
+    <p style="text-align:center;font-size:11px;color:var(--color-text-secondary);margin-top:12px">
+      30-day money-back guarantee on annual plans · Secure checkout via Stripe
+    </p>
+
+    <button class="btn-forgot" id="btn-subscribe-signout">Sign out</button>
+  </div>
+</div>
   
   <!-- ONBOARDING SCREEN -->
   <div id="screen-onboarding" class="screen active">
