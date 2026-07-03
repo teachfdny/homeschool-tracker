@@ -2659,6 +2659,15 @@ onAuthStateChanged(auth, async (user) => {
       }
     }
 
+    // Force token refresh to get latest custom claims
+    const tokenResult = await user.getIdTokenResult(true);
+    const hasAccess = tokenResult.claims.keeper === true;
+
+    if (!hasAccess) {
+      await openSubscribeScreen(user);
+      return;
+    }
+
     // Load user data from Firestore
     try {
       const data = await loadUserData(user.uid);
