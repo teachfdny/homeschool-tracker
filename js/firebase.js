@@ -73,6 +73,11 @@ function subscribeToUserData(userId, callback) {
   });
 }
 
+async function saveSyncSnapshot(userId, childId, snapshot) {
+  const ref = doc(db, 'users', userId, 'syncSnapshots', childId);
+  await setDoc(ref, snapshot);
+}
+
 export {
   auth,
   db,
@@ -85,5 +90,6 @@ export {
   saveUserData,
   loadUserData,
   subscribeToUserData,
-  onAuthStateChanged
+  onAuthStateChanged,
+  saveSyncSnapshot
 };

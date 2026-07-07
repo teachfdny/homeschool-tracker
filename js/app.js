@@ -11,7 +11,8 @@ import {
   logOut,
   saveUserData,
   loadUserData,
-  onAuthStateChanged
+  onAuthStateChanged,
+  saveSyncSnapshot
 } from './firebase.js';
 
 // =====================
@@ -621,6 +622,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // =====================
 let selectedCreditMethod = 'lessons';
 let creditBearing = false;
+let selectedGpaLevel = 'Regular';
+let editGpaLevel = 'Regular';
 
 document.getElementById('btn-add-subject').addEventListener('click', () => {
   // Remove any existing confirm message
@@ -662,13 +665,30 @@ document.querySelectorAll('.credit-method').forEach(method => {
   });
 });
 
+document.querySelectorAll('#credit-options .gpa-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#credit-options .gpa-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    selectedGpaLevel = chip.dataset.level;
+  });
+});
+
+document.querySelectorAll('#edit-credit-options .gpa-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#edit-credit-options .gpa-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    editGpaLevel = chip.dataset.level;
+  });
+});
+
 document.getElementById('btn-save-subject').addEventListener('click', async () => {
   const name = document.getElementById('subject-name').value.trim();
   const type = document.getElementById('subject-type').value;
   const curriculum = document.getElementById('subject-curriculum').value.trim();
   const totalLessons = parseInt(document.getElementById('subject-lessons').value);
   const duration = document.getElementById('subject-duration').value;
-
+  const credits = parseFloat(document.getElementById('subject-credits').value) || null;
+  
   if (!name) { alert('Please enter a subject name.'); return; }
   if (!curriculum) { alert('Please enter a curriculum or resource name.'); return; }
   if (!totalLessons || totalLessons < 1) { alert('Please enter the total number of lessons.'); return; }
@@ -681,6 +701,7 @@ document.getElementById('btn-save-subject').addEventListener('click', async () =
     id: Date.now(),
     name, type, curriculum, totalLessons, duration,
     creditBearing, creditMethod: selectedCreditMethod,
+    credits, gpaLevel: selectedGpaLevel,
     lessonsCompleted: 0, hoursLogged: 0,
     archived: false,
     createdAt: new Date().toISOString()
@@ -694,6 +715,10 @@ document.getElementById('btn-save-subject').addEventListener('click', async () =
   document.getElementById('subject-curriculum').value = '';
   document.getElementById('subject-lessons').value = '';
   document.getElementById('subject-duration').value = 'full';
+  document.getElementById('subject-credits').value = '';
+selectedGpaLevel = 'Regular';
+document.querySelectorAll('#credit-options .gpa-chip').forEach(c => c.classList.remove('selected'));
+document.getElementById('gpa-regular').classList.add('selected');
   document.getElementById('subject-type').value = 'core';
   creditBearing = false;
   selectedCreditMethod = 'lessons';
@@ -800,7 +825,7 @@ function renderSchoolLogEntries(child) {
         </div>
         <div class="subject-log-wide">
           <label>Notes</label>
-          <input type="text" placeholder="What did you cover?" id="notes-${subject.id}" />
+          <input type="text" placeholder="Content covered? e.g. Volcanoes, fractions, homophones, WWI" id="notes-${subject.id}" />
         </div>
       </div>
       <div class="subject-collapsed-hint" id="hint-${subject.id}">Tap to log this week's work</div>
@@ -1004,7 +1029,12 @@ function openEditSubject(subjectId) {
   document.getElementById('edit-subject-curriculum').value = subject.curriculum;
   document.getElementById('edit-subject-lessons').value = subject.totalLessons;
   document.getElementById('edit-subject-duration').value = subject.duration;
-
+  document.getElementById('edit-subject-credits').value = subject.credits || '';
+editGpaLevel = subject.gpaLevel || 'Regular';
+document.querySelectorAll('#edit-credit-options .gpa-chip').forEach(c => c.classList.remove('selected'));
+document.getElementById('edit-gpa-' + editGpaLevel.toLowerCase()).classList.add('selected');
+  
+  
   const toggle = document.getElementById('edit-credit-toggle');
   const creditOptions = document.getElementById('edit-credit-options');
   if (subject.creditBearing) {
@@ -1042,6 +1072,9 @@ function attachSubjectCardListeners() {
 }
 
 document.getElementById('btn-back-from-edit-subject').addEventListener('click', () => showScreen('screen-dashboard'));
+document.getElementById('btn-back-from-sync').addEventListener('click', () => {
+  showScreen('screen-dashboard');
+});
 
 document.getElementById('edit-credit-toggle').addEventListener('click', () => {
   editCreditBearing = !editCreditBearing;
@@ -1094,7 +1127,9 @@ document.getElementById('btn-save-edit-subject').addEventListener('click', async
     totalLessons: Math.max(totalLessons, existing.lessonsCompleted),
     duration,
     creditBearing: editCreditBearing,
-    creditMethod: editCreditMethod
+    creditMethod: editCreditMethod,
+    credits: parseFloat(document.getElementById('edit-subject-credits').value) || null,
+  gpaLevel: editGpaLevel
   };
 
   family.children[currentChildIndex] = child;
@@ -1196,13 +1231,15 @@ function openSettings() {
   const family = loadData('family');
   if (!family) return;
 
-  document.getElementById('settings-official-name').textContent = family.officialName;
-  document.getElementById('settings-nickname').textContent = family.nickname;
+  document.getElementById('settings-edit-official-name').value = family.officialName;
+document.getElementById('settings-edit-nickname').value = family.nickname;
   document.getElementById('settings-year-start').textContent =
     family.schoolYearStart.charAt(0).toUpperCase() + family.schoolYearStart.slice(1);
 
   const child = family.children[currentChildIndex];
   const activeYear = getActiveYear(child);
+  const hasCreditBearing = getSubjects(child).some(s => s.creditBearing);
+  document.getElementById('sync-section').style.display = hasCreditBearing ? 'block' : 'none';
   const quarters = activeYear?.quarterSettings;
 
   quarteringEnabled = activeYear?.quarteringEnabled || false;
@@ -1238,12 +1275,186 @@ document.getElementById('btn-back-from-settings').addEventListener('click', () =
   showScreen('screen-dashboard');
 });
 
+document.getElementById('btn-save-school-info').addEventListener('click', async () => {
+  const officialName = document.getElementById('settings-edit-official-name').value.trim();
+  const nickname = document.getElementById('settings-edit-nickname').value.trim();
+
+  if (!officialName || !nickname) {
+    alert('Both school name and nickname are required.');
+    return;
+  }
+
+  const family = loadData('family');
+  family.officialName = officialName;
+  family.nickname = nickname;
+  await saveData('family', family);
+
+  // Update the dashboard nickname display immediately
+  document.getElementById('display-nickname').textContent = '✦ ' + nickname;
+
+  const btn = document.getElementById('btn-save-school-info');
+  btn.textContent = 'Saved ✓';
+  setTimeout(() => { btn.textContent = 'Save school info'; }, 1500);
+});
+
 document.getElementById('btn-sign-out').addEventListener('click', async () => {
   if (confirm('Sign out of your account?')) {
     await logOut();
     appData = null;
     currentUser = null;
     showScreen('screen-auth');
+  }
+});
+
+document.getElementById('btn-manage-subscription').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-manage-subscription');
+  btn.textContent = 'Loading...';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('https://us-central1-ataleofchanges-homeschool.cloudfunctions.net/createPortalSession', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        uid: currentUser.uid,
+        email: currentUser.email
+      })
+    });
+
+    const data = await response.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || 'No portal URL returned');
+    }
+  } catch (err) {
+    console.error('Portal error:', err);
+    alert('❌ Could not open subscription management. Please try again.\n\n' + err.message);
+    btn.textContent = 'Manage subscription';
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('btn-open-sync').addEventListener('click', () => {
+  openSyncScreen();
+});
+
+const GRADE_OPTIONS = ['Not entered','A','A-','B+','B','B-','C+','C','C-','D','F','P'];
+
+function openSyncScreen() {
+  const family = loadData('family');
+  const child = family.children[currentChildIndex];
+  const activeYear = getActiveYear(child);
+
+  document.getElementById('sync-screen-sub').textContent =
+    child.grade + ' grade \u00b7 ' + activeYear.label + ' school year';
+
+  document.getElementById('sync-last-synced').textContent = activeYear.lastSyncedAt
+    ? 'Last synced ' + new Date(activeYear.lastSyncedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : 'Not yet synced';
+
+  renderSyncSubjectList(activeYear);
+  showScreen('screen-sync-transcript');
+}
+
+function renderSyncSubjectList(activeYear) {
+  const creditSubjects = activeYear.subjects.filter(s => s.creditBearing && !s.archived);
+  const list = document.getElementById('sync-subject-list');
+  list.innerHTML = '';
+
+  if (creditSubjects.length === 0) {
+    list.innerHTML = '<p style="font-size:14px;color:var(--color-text-secondary)">No credit-bearing subjects yet.</p>';
+    updateSyncSelectedCount();
+    return;
+  }
+
+  creditSubjects.forEach(subject => {
+    const row = document.createElement('div');
+    row.className = 'sync-subject-row';
+    row.dataset.id = subject.id;
+
+    const gradeOptionsHTML = GRADE_OPTIONS.map(g =>
+      '<option value="' + g + '"' + (g === 'Not entered' ? ' selected' : '') + '>' + g + '</option>'
+    ).join('');
+
+    row.innerHTML = `
+      <div class="sync-row-top">
+        <input type="checkbox" class="sync-checkbox" checked />
+        <div class="sync-row-name">
+          <div>${subject.name}</div>
+          <div class="sync-row-meta">${subject.gpaLevel || 'Regular'} \u00b7 ${subject.credits || '?'} credit${subject.credits === 1 ? '' : 's'}</div>
+        </div>
+      </div>
+      <div class="sync-row-grade">
+        <label>Grade</label>
+        <select class="sync-grade-select">${gradeOptionsHTML}</select>
+      </div>
+    `;
+
+    row.querySelector('.sync-checkbox').addEventListener('change', updateSyncSelectedCount);
+    list.appendChild(row);
+  });
+
+  updateSyncSelectedCount();
+}
+
+function updateSyncSelectedCount() {
+  const total = document.querySelectorAll('#sync-subject-list .sync-checkbox').length;
+  const selected = document.querySelectorAll('#sync-subject-list .sync-checkbox:checked').length;
+  document.getElementById('sync-selected-count').textContent =
+    selected + ' of ' + total + ' selected';
+}
+
+document.getElementById('btn-sync-selected').addEventListener('click', async () => {
+    try {
+       const family = loadData('family');
+      const child = family.children[currentChildIndex];
+       const activeYear = getActiveYear(child);
+        const rows = document.querySelectorAll('#sync-subject-list .sync-subject-row');
+        const payload = [];
+    rows.forEach(row => {
+      const checkbox = row.querySelector('.sync-checkbox');
+  
+      if (!checkbox.checked) return;
+      const subjectId = parseInt(row.dataset.id);
+      const subject = activeYear.subjects.find(s => s.id === subjectId);
+      
+      const gradeValue = row.querySelector('.sync-grade-select').value;
+     
+      payload.push({
+        id: subject.id,
+        name: subject.name,
+        credits: subject.credits,
+        grade: gradeValue === 'Not entered' ? null : gradeValue,
+        type: subject.gpaLevel || 'Regular',
+        gpaPoints: null
+      });
+    });
+   
+
+    if (payload.length === 0) {
+      alert('No subjects selected to sync.');
+      return;
+    }
+
+    const snapshot = {
+      childId: child.id,
+      childName: child.name,
+      grade: child.grade,
+      syncedAt: new Date().toISOString(),
+      courses: payload
+    };
+
+    await saveSyncSnapshot(currentUser.uid, String(child.id), snapshot);
+    alert('✅ Courses synced successfully! Open the Transcript Generator and click "Import from Record Keeper" to pull them in.');
+    activeYear.lastSyncedAt = new Date().toISOString();
+    family.children[currentChildIndex] = child;
+    await saveData('family', family);
+
+    openSyncScreen();
+  } catch (err) {
+    console.error('Sync failed:', err);
+    alert('❌ Sync failed. Please try again.\n\n' + err.message);
   }
 });
 
@@ -2163,6 +2374,110 @@ function getAuthErrorMessage(code) {
 }
 
 // =====================
+// SUBSCRIBE SCREEN
+// =====================
+let selectedPriceId = 'price_1TqM0lIi9YOmvq5vCdDKpGmd'; // default: founding member
+
+const FOUNDING_MEMBER_CAP = 50;
+const FOUNDING_MEMBER_COUNT_THRESHOLD = 30;
+
+async function loadFoundingMemberCount() {
+  try {
+    const { db } = await import('./firebase.js');
+    const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js');
+    const ref = doc(db, 'meta', 'foundingMembers');
+    const snap = await getDoc(ref);
+    return snap.exists() ? (snap.data().count || 0) : 0;
+  } catch (err) {
+    console.error('Could not load founding member count:', err);
+    return 0;
+  }
+}
+
+async function openSubscribeScreen(user) {
+  const emailEl = document.getElementById('subscribe-user-email');
+  if (emailEl) emailEl.textContent = 'Signed in as ' + user.email;
+
+  const count = await loadFoundingMemberCount();
+  const remaining = FOUNDING_MEMBER_CAP - count;
+  const soldOut = remaining <= 0;
+
+  const foundingTier = document.getElementById('tier-founding');
+  const countText = document.getElementById('founding-count-text');
+
+  if (soldOut) {
+    foundingTier.classList.add('soldout');
+    foundingTier.classList.remove('selected');
+    document.getElementById('radio-founding').classList.remove('checked');
+    // Default selection falls to annual
+    selectedPriceId = 'price_1TlJUCIQrVlvTmdBiTFnNw3K';
+    document.getElementById('tier-annual').classList.add('selected');
+    document.getElementById('radio-annual').classList.add('checked');
+  } else {
+    if (remaining <= FOUNDING_MEMBER_COUNT_THRESHOLD) {
+      countText.textContent = remaining + ' spot' + (remaining === 1 ? '' : 's') + ' remaining';
+      countText.style.display = 'block';
+    } else {
+      countText.style.display = 'none';
+    }
+  }
+
+  showScreen('screen-subscribe');
+}
+
+// Tier selection
+document.querySelectorAll('.subscribe-tier').forEach(tier => {
+  tier.addEventListener('click', () => {
+    document.querySelectorAll('.subscribe-tier').forEach(t => {
+      t.classList.remove('selected');
+      t.querySelector('.subscribe-radio').classList.remove('checked');
+    });
+    tier.classList.add('selected');
+    tier.querySelector('.subscribe-radio').classList.add('checked');
+    selectedPriceId = tier.dataset.price;
+  });
+});
+
+// Continue to payment
+document.getElementById('btn-continue-to-payment').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-continue-to-payment');
+  btn.textContent = 'Loading...';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('https://us-central1-ataleofchanges-homeschool.cloudfunctions.net/createCheckoutSession', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        priceId: selectedPriceId,
+        uid: currentUser.uid,
+        email: currentUser.email
+      })
+    });
+
+    const data = await response.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || 'No checkout URL returned');
+    }
+  } catch (err) {
+    console.error('Payment error:', err);
+    alert('❌ Could not start checkout. Please try again.\n\n' + err.message);
+    btn.textContent = 'Continue to payment';
+    btn.disabled = false;
+  }
+});
+
+// Sign out from subscribe screen
+document.getElementById('btn-subscribe-signout').addEventListener('click', async () => {
+  await logOut();
+  appData = null;
+  currentUser = null;
+  showScreen('screen-auth');
+});
+
+// =====================
 // AUTH TABS
 // =====================
 document.getElementById('tab-signin').addEventListener('click', () => {
@@ -2371,6 +2686,15 @@ onAuthStateChanged(auth, async (user) => {
         showScreen('screen-magic-confirm');
         return;
       }
+    }
+
+    // Force token refresh to get latest custom claims
+    const tokenResult = await user.getIdTokenResult(true);
+    const hasAccess = tokenResult.claims.keeper === true;
+
+    if (!hasAccess) {
+      await openSubscribeScreen(user);
+      return;
     }
 
     // Load user data from Firestore
