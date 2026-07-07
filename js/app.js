@@ -2347,7 +2347,7 @@ function getAuthErrorMessage(code) {
 // =====================
 // SUBSCRIBE SCREEN
 // =====================
-let selectedPriceId = 'price_1TlJT3IQrVlvTmdBQa05aajd'; // default: founding member
+let selectedPriceId = 'price_1TqM0lIi9YOmvq5vCdDKpGmd'; // default: founding member
 
 const FOUNDING_MEMBER_CAP = 50;
 const FOUNDING_MEMBER_COUNT_THRESHOLD = 30;
