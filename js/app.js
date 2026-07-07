@@ -1306,6 +1306,35 @@ document.getElementById('btn-sign-out').addEventListener('click', async () => {
   }
 });
 
+document.getElementById('btn-manage-subscription').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-manage-subscription');
+  btn.textContent = 'Loading...';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('https://us-central1-ataleofchanges-homeschool.cloudfunctions.net/createPortalSession', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        uid: currentUser.uid,
+        email: currentUser.email
+      })
+    });
+
+    const data = await response.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || 'No portal URL returned');
+    }
+  } catch (err) {
+    console.error('Portal error:', err);
+    alert('❌ Could not open subscription management. Please try again.\n\n' + err.message);
+    btn.textContent = 'Manage subscription';
+    btn.disabled = false;
+  }
+});
+
 document.getElementById('btn-open-sync').addEventListener('click', () => {
   openSyncScreen();
 });
