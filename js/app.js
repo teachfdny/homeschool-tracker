@@ -53,7 +53,7 @@ function generateYearLabel(schoolYearStart) {
     'july','august','september','october','november','december'];
   const startMonthIndex = monthNames.indexOf(schoolYearStart || 'august');
   let startYear = now.getFullYear();
-  if (now.getMonth() < startMonthIndex) {
+  if (now.getMonth() <= startMonthIndex) {
     startYear = now.getFullYear() - 1;
   }
   return startYear + '-' + (startYear + 1);
