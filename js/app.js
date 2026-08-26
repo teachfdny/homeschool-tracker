@@ -3316,6 +3316,52 @@ function renderPastLogs(child) {
   const list = document.getElementById('past-logs-list');
   list.innerHTML = '';
 
+// ── Missed week prompt ──
+  const family = loadData('family');
+  if (lastWeekIsMissed(child, family)) {
+    const { startDate, weekNumber } = getLastWeekInfo(family);
+    const dateRange = formatWeekDates(startDate);
+    const dismissedWeek = localStorage.getItem('missedWeekDismissed');
+
+    if (dismissedWeek !== String(weekNumber)) {
+      const prompt = document.createElement('div');
+      prompt.className = 'missed-week-prompt';
+      prompt.innerHTML = `
+        <div class="missed-week-prompt-body">
+          <div class="missed-week-title">Week ${weekNumber} wasn't logged</div>
+          <div class="missed-week-dates">${dateRange}</div>
+          <div class="missed-week-hint">If you're just getting started, ignore this.</div>
+          <button class="btn-primary" id="btn-log-missed-week" style="margin-top:12px;width:100%">Log this week</button>
+          <button class="btn-forgot" id="btn-dismiss-missed-week" style="margin-top:8px;width:100%;text-align:center">Dismiss</button>
+        </div>
+      `;
+      list.appendChild(prompt);
+
+      document.getElementById('btn-log-missed-week').addEventListener('click', () => {
+        currentWeekStartDate = startDate;
+        currentWeekNumber = weekNumber;
+
+        const weekLabel = 'Week ' + weekNumber + ' · ' + formatWeekDates(startDate);
+        document.getElementById('week-type-label').textContent = weekLabel;
+
+        const gem = getCurrentMonthGem();
+        document.getElementById('week-gem-notice-text').textContent =
+          'Log this week to work toward your ' + gem.name + ' — ' +
+          new Date().toLocaleString('default', { month: 'long' }) + '\'s gem.';
+
+        currentWeekType = null;
+        document.querySelectorAll('.week-type-card').forEach(c => c.classList.remove('selected'));
+        resetBookState();
+        showScreen('screen-week-type');
+      });
+
+      document.getElementById('btn-dismiss-missed-week').addEventListener('click', () => {
+        localStorage.setItem('missedWeekDismissed', String(weekNumber));
+        prompt.remove();
+      });
+    }
+  }
+  
   const activeYear = getActiveYear(child);
   const logs = getLogs(child);
 
