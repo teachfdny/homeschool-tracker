@@ -459,6 +459,25 @@ function getCurrentWeekDates() {
 }
 
 // =====================
+// MISSED WEEK HELPERS
+// =====================
+function getLastWeekInfo(family) {
+  const lastWeekStart = new Date(getWeekStartDate());
+  lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+  const lastWeekNumber = getWeekNumber(family) - 1;
+  return { startDate: lastWeekStart, weekNumber: lastWeekNumber };
+}
+
+function lastWeekIsMissed(child, family) {
+  const currentWeekNum = getWeekNumber(family);
+  if (currentWeekNum <= 1) return false;
+  const { weekNumber } = getLastWeekInfo(family);
+  const logs = getLogs(child);
+  const exists = logs.some(l => l.weekNumber === weekNumber);
+  return !exists;
+}
+
+// =====================
 // DASHBOARD
 // =====================
 function renderDashboard() {
