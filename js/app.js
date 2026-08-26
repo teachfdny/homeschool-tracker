@@ -3365,10 +3365,13 @@ function renderPastLogs(child) {
   const activeYear = getActiveYear(child);
   const logs = getLogs(child);
 
-  if (!logs || logs.length === 0) {
-    list.innerHTML = `<p class="log-empty">No weeks logged yet this year.</p>`;
-    return;
-  }
+ if (!logs || logs.length === 0) {
+  const empty = document.createElement('p');
+  empty.className = 'log-empty';
+  empty.textContent = 'No weeks logged yet this year.';
+  list.appendChild(empty);
+  return;
+}
 
   const sorted = [...logs].sort((a, b) => b.weekNumber - a.weekNumber);
 
