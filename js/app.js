@@ -3098,16 +3098,27 @@ setupUnitStudyToggle('toggle-unit-study-adventure', 'unit-study-section-adventur
 // =====================
 // ADD UNIT STUDY BUTTONS
 // =====================
+function syncUnitStudyInputsToArray(prefix) {
+  const studies = prefix === 'school' ? schoolUnitStudies : adventureUnitStudies;
+  studies.forEach((study, index) => {
+    const titleEl = document.getElementById(prefix + '-unit-title-' + index);
+    const notesEl = document.getElementById(prefix + '-unit-notes-' + index);
+    if (titleEl) study.title = titleEl.value;
+    if (notesEl) study.notes = notesEl.value;
+  });
+}
+
 document.getElementById('btn-add-unit-study').addEventListener('click', () => {
+  syncUnitStudyInputsToArray('school');
   schoolUnitStudies.push({ title: '', type: 'unit', subjects: [], notes: '' });
   renderUnitStudies('school');
 });
 
 document.getElementById('btn-add-unit-study-adventure').addEventListener('click', () => {
+  syncUnitStudyInputsToArray('adventure');
   adventureUnitStudies.push({ title: '', type: 'unit', subjects: [], notes: '' });
   renderUnitStudies('adventure');
 });
-
 // =====================
 // RESET UNIT STUDIES
 // =====================
